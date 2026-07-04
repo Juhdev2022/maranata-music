@@ -1,8 +1,10 @@
 package br.com.maranatamusic.presentation.exception;
 
 import br.com.maranatamusic.domain.exception.EmailJaCadastradoException;
+import br.com.maranatamusic.domain.exception.UsuarioNaoEncontradoException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -41,6 +43,19 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErroResponse> handleAuthentication(AuthenticationException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(ErroResponse.simples("Credenciais inválidas"));
+    }
+
+    @ExceptionHandler(UsuarioNaoEncontradoException.class)
+    public ResponseEntity<ErroResponse> handleUsuarioNaoEncontrado(UsuarioNaoEncontradoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErroResponse.simples("Usuário não encontrado"));
+    }
+
+    // Sem isso, @PreAuthorize bloqueando um acesso cai no handler genérico de 500 do Spring Boot
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErroResponse> handleAccessDenied(AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ErroResponse.simples("Acesso negado"));
     }
 
     @ExceptionHandler(Exception.class)

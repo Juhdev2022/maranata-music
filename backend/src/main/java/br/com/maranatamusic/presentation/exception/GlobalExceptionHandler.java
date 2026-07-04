@@ -8,6 +8,7 @@ import br.com.maranatamusic.domain.exception.InstrumentoJaEscaladoException;
 import br.com.maranatamusic.domain.exception.InstrumentoNaoEncontradoException;
 import br.com.maranatamusic.domain.exception.MusicoJaEscaladoEmOutroCultoException;
 import br.com.maranatamusic.domain.exception.MusicoNaoTocaInstrumentoException;
+import br.com.maranatamusic.domain.exception.UltimoLiderException;
 import br.com.maranatamusic.domain.exception.UsuarioInativoException;
 import br.com.maranatamusic.domain.exception.UsuarioNaoEncontradoException;
 import org.springframework.http.HttpStatus;
@@ -117,6 +118,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InstrumentoEmUsoException.class)
     public ResponseEntity<ErroResponse> handleInstrumentoEmUso(InstrumentoEmUsoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(UltimoLiderException.class)
+    public ResponseEntity<ErroResponse> handleUltimoLider(UltimoLiderException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ErroResponse.simples(ex.getMessage()));
     }

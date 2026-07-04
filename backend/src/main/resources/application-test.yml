@@ -12,3 +12,7 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+
+jwt:
+  # Valor fixo apenas para testes — não usar em nenhum outro ambiente
+  secret: dGVzdC1zZWNyZXQta2V5LWZvci1qdW5pdC1vbmx5LWRvLW5vdC11c2UtaW4tcHJvZC0xMjM0NTY3ODkwCg==

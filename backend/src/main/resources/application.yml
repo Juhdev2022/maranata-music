@@ -11,7 +11,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,info
   endpoint:
     health:
       show-details: never
+
+jwt:
+  expiration-hours: 24

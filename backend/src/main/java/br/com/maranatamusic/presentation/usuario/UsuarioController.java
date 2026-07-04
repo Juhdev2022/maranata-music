@@ -38,4 +38,17 @@ public class UsuarioController {
         usuarioService.removerPapel(id, papel);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('LIDER')")
+    public ResponseEntity<Void> desativar(@PathVariable Long id) {
+        usuarioService.desativar(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/reativar")
+    @PreAuthorize("hasRole('LIDER')")
+    public ResponseEntity<UsuarioResponse> reativar(@PathVariable Long id) {
+        return ResponseEntity.ok(usuarioService.reativar(id));
+    }
 }

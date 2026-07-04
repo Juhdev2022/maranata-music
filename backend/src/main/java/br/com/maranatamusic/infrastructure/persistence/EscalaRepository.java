@@ -34,4 +34,10 @@ public interface EscalaRepository extends JpaRepository<Escala, Long> {
             @Param("usuarioId") Long usuarioId,
             @Param("inicio") LocalDateTime inicio,
             @Param("fim") LocalDateTime fim);
+
+    @Query("SELECT COUNT(e) FROM Escala e " +
+           "WHERE e.usuario.id = :usuarioId " +
+           "AND e.culto.dataHora > :agora " +
+           "AND e.status = br.com.maranatamusic.domain.enums.EscalaStatus.CONFIRMADA")
+    long countEscalasFuturasConfirmadas(@Param("usuarioId") Long usuarioId, @Param("agora") LocalDateTime agora);
 }

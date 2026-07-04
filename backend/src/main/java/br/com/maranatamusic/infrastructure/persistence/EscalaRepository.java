@@ -15,6 +15,8 @@ public interface EscalaRepository extends JpaRepository<Escala, Long> {
 
     boolean existsByCultoIdAndInstrumentoId(Long cultoId, Long instrumentoId);
 
+    boolean existsByInstrumentoId(Long instrumentoId);
+
     // JOIN FETCH obrigatório: sem ele, usuario e instrumento são LAZY e disparam 2 queries por escala (N+1)
     @Query("SELECT e FROM Escala e " +
            "LEFT JOIN FETCH e.usuario " +

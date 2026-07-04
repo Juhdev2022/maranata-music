@@ -2,6 +2,8 @@ package br.com.maranatamusic.presentation.exception;
 
 import br.com.maranatamusic.domain.exception.CultoNaoEncontradoException;
 import br.com.maranatamusic.domain.exception.EmailJaCadastradoException;
+import br.com.maranatamusic.domain.exception.InstrumentoEmUsoException;
+import br.com.maranatamusic.domain.exception.InstrumentoJaCadastradoException;
 import br.com.maranatamusic.domain.exception.InstrumentoJaEscaladoException;
 import br.com.maranatamusic.domain.exception.InstrumentoNaoEncontradoException;
 import br.com.maranatamusic.domain.exception.MusicoJaEscaladoEmOutroCultoException;
@@ -103,6 +105,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MusicoJaEscaladoEmOutroCultoException.class)
     public ResponseEntity<ErroResponse> handleMusicoJaEscaladoEmOutroCulto(MusicoJaEscaladoEmOutroCultoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(InstrumentoJaCadastradoException.class)
+    public ResponseEntity<ErroResponse> handleInstrumentoJaCadastrado(InstrumentoJaCadastradoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(InstrumentoEmUsoException.class)
+    public ResponseEntity<ErroResponse> handleInstrumentoEmUso(InstrumentoEmUsoException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ErroResponse.simples(ex.getMessage()));
     }

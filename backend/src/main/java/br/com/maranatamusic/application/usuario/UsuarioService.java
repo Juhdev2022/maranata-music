@@ -8,10 +8,12 @@ import br.com.maranatamusic.domain.exception.UsuarioNaoEncontradoException;
 import br.com.maranatamusic.infrastructure.persistence.EscalaRepository;
 import br.com.maranatamusic.infrastructure.persistence.UsuarioRepository;
 import br.com.maranatamusic.presentation.usuario.dto.UsuarioResponse;
+import br.com.maranatamusic.presentation.usuario.dto.UsuarioResumoResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class UsuarioService {
@@ -22,6 +24,14 @@ public class UsuarioService {
     public UsuarioService(UsuarioRepository usuarioRepository, EscalaRepository escalaRepository) {
         this.usuarioRepository = usuarioRepository;
         this.escalaRepository = escalaRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public List<UsuarioResumoResponse> listar(boolean ativos, Papel papel) {
+        return usuarioRepository.buscarComPapeis(ativos).stream()
+                .filter(usuario -> papel == null || usuario.getPapeis().contains(papel))
+                .map(UsuarioResumoResponse::from)
+                .toList();
     }
 
     @Transactional

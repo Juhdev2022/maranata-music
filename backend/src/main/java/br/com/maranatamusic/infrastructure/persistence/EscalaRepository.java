@@ -40,4 +40,14 @@ public interface EscalaRepository extends JpaRepository<Escala, Long> {
            "AND e.culto.dataHora > :agora " +
            "AND e.status = br.com.maranatamusic.domain.enums.EscalaStatus.CONFIRMADA")
     long countEscalasFuturasConfirmadas(@Param("usuarioId") Long usuarioId, @Param("agora") LocalDateTime agora);
+
+    @Query("SELECT COUNT(e) FROM Escala e " +
+           "WHERE e.usuario.id = :usuarioId " +
+           "AND e.instrumento.id = :instrumentoId " +
+           "AND e.culto.dataHora > :agora " +
+           "AND e.status = br.com.maranatamusic.domain.enums.EscalaStatus.CONFIRMADA")
+    long countEscalasFuturasConfirmadasPorInstrumento(
+            @Param("usuarioId") Long usuarioId,
+            @Param("instrumentoId") Long instrumentoId,
+            @Param("agora") LocalDateTime agora);
 }

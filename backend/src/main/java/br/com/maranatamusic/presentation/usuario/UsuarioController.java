@@ -4,15 +4,20 @@ import br.com.maranatamusic.application.usuario.UsuarioService;
 import br.com.maranatamusic.domain.enums.Papel;
 import br.com.maranatamusic.presentation.usuario.dto.AlterarPapelRequest;
 import br.com.maranatamusic.presentation.usuario.dto.UsuarioResponse;
+import br.com.maranatamusic.presentation.usuario.dto.UsuarioResumoResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -22,6 +27,13 @@ public class UsuarioController {
 
     public UsuarioController(UsuarioService usuarioService) {
         this.usuarioService = usuarioService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UsuarioResumoResponse>> listar(
+            @RequestParam(defaultValue = "true") boolean ativos,
+            @RequestParam(required = false) Papel papel) {
+        return ResponseEntity.ok(usuarioService.listar(ativos, papel));
     }
 
     @PostMapping("/{id}/papeis")

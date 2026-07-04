@@ -9,12 +9,14 @@ import br.com.maranatamusic.domain.exception.InstrumentoEmUsoException;
 import br.com.maranatamusic.domain.exception.InstrumentoJaCadastradoException;
 import br.com.maranatamusic.domain.exception.InstrumentoJaEscaladoException;
 import br.com.maranatamusic.domain.exception.InstrumentoNaoEncontradoException;
+import br.com.maranatamusic.domain.exception.MusicoInstrumentoNaoEncontradoException;
 import br.com.maranatamusic.domain.exception.MusicoJaEscaladoEmOutroCultoException;
 import br.com.maranatamusic.domain.exception.MusicoNaoTocaInstrumentoException;
 import br.com.maranatamusic.domain.exception.UltimoLiderException;
 import br.com.maranatamusic.domain.exception.UsuarioComEscalaFuturaException;
 import br.com.maranatamusic.domain.exception.UsuarioInativoException;
 import br.com.maranatamusic.domain.exception.UsuarioNaoEncontradoException;
+import br.com.maranatamusic.domain.exception.VinculoComEscalaFuturaException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -153,6 +155,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EstadoEscalaInvalidoException.class)
     public ResponseEntity<ErroResponse> handleEstadoEscalaInvalido(EstadoEscalaInvalidoException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(VinculoComEscalaFuturaException.class)
+    public ResponseEntity<ErroResponse> handleVinculoComEscalaFutura(VinculoComEscalaFuturaException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(MusicoInstrumentoNaoEncontradoException.class)
+    public ResponseEntity<ErroResponse> handleMusicoInstrumentoNaoEncontrado(MusicoInstrumentoNaoEncontradoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ErroResponse.simples(ex.getMessage()));
     }
 

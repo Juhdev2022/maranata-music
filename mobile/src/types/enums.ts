@@ -27,3 +27,10 @@ export const ESCALA_STATUS_LABEL: Record<EscalaStatus, string> = {
   RECUSADA: 'Recusada',
   SUBSTITUIDA: 'Substituída',
 }
+
+export const ESCALA_STATUS_TONE: Record<EscalaStatus, 'amber' | 'green' | 'red' | 'gray'> = {
+  PENDENTE: 'amber',
+  CONFIRMADA: 'green',
+  RECUSADA: 'red',
+  SUBSTITUIDA: 'gray',
+}

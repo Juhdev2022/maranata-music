@@ -1,7 +1,10 @@
 package br.com.maranatamusic.presentation.exception;
 
+import br.com.maranatamusic.domain.exception.AcessoNaoAutorizadoException;
 import br.com.maranatamusic.domain.exception.CultoNaoEncontradoException;
 import br.com.maranatamusic.domain.exception.EmailJaCadastradoException;
+import br.com.maranatamusic.domain.exception.EscalaNaoEncontradaException;
+import br.com.maranatamusic.domain.exception.EstadoEscalaInvalidoException;
 import br.com.maranatamusic.domain.exception.InstrumentoEmUsoException;
 import br.com.maranatamusic.domain.exception.InstrumentoJaCadastradoException;
 import br.com.maranatamusic.domain.exception.InstrumentoJaEscaladoException;
@@ -131,6 +134,24 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UsuarioComEscalaFuturaException.class)
     public ResponseEntity<ErroResponse> handleUsuarioComEscalaFutura(UsuarioComEscalaFuturaException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(EscalaNaoEncontradaException.class)
+    public ResponseEntity<ErroResponse> handleEscalaNaoEncontrada(EscalaNaoEncontradaException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(AcessoNaoAutorizadoException.class)
+    public ResponseEntity<ErroResponse> handleAcessoNaoAutorizado(AcessoNaoAutorizadoException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(EstadoEscalaInvalidoException.class)
+    public ResponseEntity<ErroResponse> handleEstadoEscalaInvalido(EstadoEscalaInvalidoException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ErroResponse.simples(ex.getMessage()));
     }

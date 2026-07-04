@@ -1,5 +1,6 @@
 package br.com.maranatamusic.presentation.exception;
 
+import br.com.maranatamusic.domain.exception.CultoNaoEncontradoException;
 import br.com.maranatamusic.domain.exception.EmailJaCadastradoException;
 import br.com.maranatamusic.domain.exception.UsuarioNaoEncontradoException;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -56,6 +58,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErroResponse> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(ErroResponse.simples("Acesso negado"));
+    }
+
+    @ExceptionHandler(CultoNaoEncontradoException.class)
+    public ResponseEntity<ErroResponse> handleCultoNaoEncontrado(CultoNaoEncontradoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErroResponse.simples("Culto não encontrado"));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErroResponse> handleParametroInvalido(MethodArgumentTypeMismatchException ex) {
+        Map<String, String> campos = Map.of(ex.getName(), "formato esperado YYYY-MM");
+        return ResponseEntity.badRequest().body(new ErroResponse("Parâmetro inválido", campos));
     }
 
     @ExceptionHandler(Exception.class)

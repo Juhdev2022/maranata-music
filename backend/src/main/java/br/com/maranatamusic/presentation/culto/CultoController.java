@@ -3,16 +3,23 @@ package br.com.maranatamusic.presentation.culto;
 import br.com.maranatamusic.application.culto.CultoService;
 import br.com.maranatamusic.infrastructure.security.CustomUserDetails;
 import br.com.maranatamusic.presentation.culto.dto.CriarCultoRequest;
+import br.com.maranatamusic.presentation.culto.dto.CultoDetalheResponse;
 import br.com.maranatamusic.presentation.culto.dto.CultoResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.YearMonth;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cultos")
@@ -30,5 +37,15 @@ public class CultoController {
                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
         CultoResponse response = cultoService.criar(request, userDetails.getUsuario().getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<CultoResponse>> listar(@RequestParam("mes") YearMonth mes) {
+        return ResponseEntity.ok(cultoService.listarPorMes(mes));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CultoDetalheResponse> detalhar(@PathVariable Long id) {
+        return ResponseEntity.ok(cultoService.buscarDetalhe(id));
     }
 }

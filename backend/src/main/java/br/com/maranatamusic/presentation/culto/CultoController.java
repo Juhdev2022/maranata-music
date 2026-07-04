@@ -5,6 +5,8 @@ import br.com.maranatamusic.infrastructure.security.CustomUserDetails;
 import br.com.maranatamusic.presentation.culto.dto.CriarCultoRequest;
 import br.com.maranatamusic.presentation.culto.dto.CultoDetalheResponse;
 import br.com.maranatamusic.presentation.culto.dto.CultoResponse;
+import br.com.maranatamusic.presentation.culto.dto.EscalaResumo;
+import br.com.maranatamusic.presentation.culto.dto.EscalarMusicoRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,5 +49,13 @@ public class CultoController {
     @GetMapping("/{id}")
     public ResponseEntity<CultoDetalheResponse> detalhar(@PathVariable Long id) {
         return ResponseEntity.ok(cultoService.buscarDetalhe(id));
+    }
+
+    @PostMapping("/{cultoId}/escalas")
+    @PreAuthorize("hasRole('LIDER')")
+    public ResponseEntity<EscalaResumo> escalar(@PathVariable Long cultoId,
+                                                 @Valid @RequestBody EscalarMusicoRequest request) {
+        EscalaResumo response = cultoService.escalar(cultoId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

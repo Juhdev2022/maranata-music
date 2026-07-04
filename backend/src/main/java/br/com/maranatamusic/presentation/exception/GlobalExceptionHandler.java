@@ -2,6 +2,11 @@ package br.com.maranatamusic.presentation.exception;
 
 import br.com.maranatamusic.domain.exception.CultoNaoEncontradoException;
 import br.com.maranatamusic.domain.exception.EmailJaCadastradoException;
+import br.com.maranatamusic.domain.exception.InstrumentoJaEscaladoException;
+import br.com.maranatamusic.domain.exception.InstrumentoNaoEncontradoException;
+import br.com.maranatamusic.domain.exception.MusicoJaEscaladoEmOutroCultoException;
+import br.com.maranatamusic.domain.exception.MusicoNaoTocaInstrumentoException;
+import br.com.maranatamusic.domain.exception.UsuarioInativoException;
 import br.com.maranatamusic.domain.exception.UsuarioNaoEncontradoException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -70,6 +75,36 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErroResponse> handleParametroInvalido(MethodArgumentTypeMismatchException ex) {
         Map<String, String> campos = Map.of(ex.getName(), "formato esperado YYYY-MM");
         return ResponseEntity.badRequest().body(new ErroResponse("Parâmetro inválido", campos));
+    }
+
+    @ExceptionHandler(InstrumentoNaoEncontradoException.class)
+    public ResponseEntity<ErroResponse> handleInstrumentoNaoEncontrado(InstrumentoNaoEncontradoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErroResponse.simples("Instrumento não encontrado"));
+    }
+
+    @ExceptionHandler(UsuarioInativoException.class)
+    public ResponseEntity<ErroResponse> handleUsuarioInativo(UsuarioInativoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErroResponse.simples("Usuário inativo"));
+    }
+
+    @ExceptionHandler(MusicoNaoTocaInstrumentoException.class)
+    public ResponseEntity<ErroResponse> handleMusicoNaoTocaInstrumento(MusicoNaoTocaInstrumentoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(InstrumentoJaEscaladoException.class)
+    public ResponseEntity<ErroResponse> handleInstrumentoJaEscalado(InstrumentoJaEscaladoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(MusicoJaEscaladoEmOutroCultoException.class)
+    public ResponseEntity<ErroResponse> handleMusicoJaEscaladoEmOutroCulto(MusicoJaEscaladoEmOutroCultoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErroResponse.simples(ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

@@ -22,4 +22,14 @@ public interface EscalaRepository extends JpaRepository<Escala, Long> {
            "WHERE e.culto.id = :cultoId " +
            "ORDER BY e.id")
     List<Escala> findByCultoIdComUsuarioEInstrumento(@Param("cultoId") Long cultoId);
+
+    @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END " +
+           "FROM Escala e " +
+           "WHERE e.usuario.id = :usuarioId " +
+           "AND e.culto.dataHora BETWEEN :inicio AND :fim " +
+           "AND e.status <> br.com.maranatamusic.domain.enums.EscalaStatus.RECUSADA")
+    boolean existeEscalaAtivaNaJanela(
+            @Param("usuarioId") Long usuarioId,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fim") LocalDateTime fim);
 }

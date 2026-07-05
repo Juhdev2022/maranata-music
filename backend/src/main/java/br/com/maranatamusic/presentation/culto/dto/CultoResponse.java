@@ -11,10 +11,15 @@ public record CultoResponse(
         CultoTipo tipo,
         MinistroResumo ministro,
         String observacoes,
-        boolean repertorioTrancado
+        boolean repertorioTrancado,
+        int totalEscalados
 ) {
 
     public static CultoResponse from(Culto culto) {
+        return from(culto, 0);
+    }
+
+    public static CultoResponse from(Culto culto, int totalEscalados) {
         MinistroResumo ministro = culto.getMinistro() == null
                 ? null
                 : new MinistroResumo(culto.getMinistro().getId(), culto.getMinistro().getNome());
@@ -25,7 +30,8 @@ public record CultoResponse(
                 culto.getTipo(),
                 ministro,
                 culto.getObservacoes(),
-                culto.isRepertorioTrancado()
+                culto.isRepertorioTrancado(),
+                totalEscalados
         );
     }
 }

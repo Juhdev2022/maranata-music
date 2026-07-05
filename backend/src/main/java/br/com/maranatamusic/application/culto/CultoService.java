@@ -77,7 +77,7 @@ public class CultoService {
 
         return cultoRepository.findByDataHoraBetween(inicio, fim).stream()
                 .sorted(Comparator.comparing(Culto::getDataHora))
-                .map(CultoResponse::from)
+                .map(culto -> CultoResponse.from(culto, (int) escalaRepository.countByCultoId(culto.getId())))
                 .toList();
     }
 

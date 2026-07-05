@@ -157,7 +157,8 @@ class CultoControllerIT {
         mockMvc.perform(get("/api/cultos?mes=2026-08")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1));
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].totalEscalados").value(0));
     }
 
     // ---- cenário 7 ----
@@ -334,6 +335,28 @@ class CultoControllerIT {
                 .andExpect(jsonPath("$.equipe.length()").value(1))
                 .andExpect(jsonPath("$.equipe[0].usuario.id").value(usuarioId))
                 .andExpect(jsonPath("$.equipe[0].instrumento.id").value(instrumentoId));
+    }
+
+    // ---- cenário 17 ----
+
+    @Test
+    void listarCultos_doMes_deveRefletirTotalEscaladosReal() throws Exception {
+        String token = obterTokenLider("lider17@maranata.com");
+        Long cultoId = criarCulto(token, LocalDateTime.of(2026, 8, 2, 19, 0), CultoTipo.DOMINGO_NOITE);
+        Long instrumentoAId = criarInstrumento("Violão M17", CategoriaInstrumento.CORDA);
+        Long instrumentoBId = criarInstrumento("Teclado M17", CategoriaInstrumento.TECLA);
+        Long usuario1Id = criarMusicoAtivo("Musico Dezessete A", "musico17a@maranata.com");
+        Long usuario2Id = criarMusicoAtivo("Musico Dezessete B", "musico17b@maranata.com");
+        criarMusicoInstrumento(usuario1Id, instrumentoAId);
+        criarMusicoInstrumento(usuario2Id, instrumentoBId);
+
+        escalar(token, cultoId, usuario1Id, instrumentoAId);
+        escalar(token, cultoId, usuario2Id, instrumentoBId);
+
+        mockMvc.perform(get("/api/cultos?mes=2026-08")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].totalEscalados").value(2));
     }
 
     // ---- helpers ----

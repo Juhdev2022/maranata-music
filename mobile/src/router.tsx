@@ -6,6 +6,8 @@ import { useAuth } from './hooks/useAuth'
 import { useIsLider } from './hooks/useIsLider'
 import { LoginPage } from './pages/auth/LoginPage'
 import { RegistroPage } from './pages/auth/RegistroPage'
+import { CriarCultoPage } from './pages/lider/CriarCultoPage'
+import { CultoDetalhePage } from './pages/lider/CultoDetalhePage'
 import { CultosPage } from './pages/lider/CultosPage'
 import { GestaoPage } from './pages/lider/GestaoPage'
 import { MinhasEscalasPage } from './pages/musico/MinhasEscalasPage'
@@ -28,6 +30,8 @@ export function AppRoutes() {
           <Route path="/escalas" element={<MinhasEscalasPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
           <Route path="/cultos" element={<LiderGuard><CultosPage /></LiderGuard>} />
+          <Route path="/cultos/novo" element={<LiderGuard><CriarCultoPage /></LiderGuard>} />
+          <Route path="/cultos/:id" element={<LiderGuard><CultoDetalhePage /></LiderGuard>} />
           <Route path="/gestao" element={<LiderGuard><GestaoPage /></LiderGuard>} />
         </Route>
       </Route>

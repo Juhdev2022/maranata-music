@@ -61,6 +61,7 @@ export interface CultoResponse {
   ministro: MinistroResumo | null
   observacoes: string | null
   repertorioTrancado: boolean
+  totalEscalados: number
 }
 
 export interface CultoDetalheResponse extends CultoResponse {

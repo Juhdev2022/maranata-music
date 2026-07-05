@@ -104,6 +104,8 @@ INSERT INTO instrumento (nome, categoria) VALUES
 
 Ajuste a lista conforme a realidade do ministério antes de rodar. Após o M5, esse processo vira endpoint no app.
 
+**Vínculo músico-instrumento:** desde o Milestone 5.6, ligar um músico a um instrumento que ele toca tem endpoint próprio — `POST /api/musicos/{usuarioId}/instrumentos/{instrumentoId}` (só `LIDER`, body opcional `{"principal": true|false}`; idempotente se o vínculo já existir). Inserir direto na tabela `musico_instrumento` via SQL fica como fallback só para carga inicial em lote ou emergência, não é mais o caminho padrão.
+
 ---
 
 ## 3. Deploy em produção (Render.com)

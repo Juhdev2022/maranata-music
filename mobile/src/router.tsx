@@ -11,6 +11,7 @@ import { CultoDetalhePage } from './pages/lider/CultoDetalhePage'
 import { CultosPage } from './pages/lider/CultosPage'
 import { GestaoPage } from './pages/lider/GestaoPage'
 import { InstrumentosPage } from './pages/lider/InstrumentosPage'
+import { UsuariosPage } from './pages/lider/UsuariosPage'
 import { MinhasEscalasPage } from './pages/musico/MinhasEscalasPage'
 import { ProfilePage } from './pages/ProfilePage'
 
@@ -35,6 +36,7 @@ export function AppRoutes() {
           <Route path="/cultos/:id" element={<LiderGuard><CultoDetalhePage /></LiderGuard>} />
           <Route path="/gestao" element={<LiderGuard><GestaoPage /></LiderGuard>} />
           <Route path="/instrumentos" element={<LiderGuard><InstrumentosPage /></LiderGuard>} />
+          <Route path="/usuarios" element={<LiderGuard><UsuariosPage /></LiderGuard>} />
         </Route>
       </Route>
 

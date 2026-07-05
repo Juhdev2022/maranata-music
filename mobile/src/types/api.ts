@@ -110,3 +110,12 @@ export interface UsuarioResponse {
 export interface AlterarPapelRequest {
   papel: Papel
 }
+
+export interface MusicoInstrumentoResponse {
+  usuarioId: number
+  usuarioNome: string
+  instrumentoId: number
+  instrumentoNome: string
+  categoria: CategoriaInstrumento
+  principal: boolean
+}

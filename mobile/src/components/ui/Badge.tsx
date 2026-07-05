@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-type Tone = 'amber' | 'green' | 'red' | 'gray'
+type Tone = 'amber' | 'green' | 'red' | 'gray' | 'gold'
 
 interface BadgeProps {
   tone: Tone
@@ -12,6 +12,7 @@ const TONE_CLASSES: Record<Tone, string> = {
   green: 'bg-success/15 text-success',
   red: 'bg-error/15 text-error',
   gray: 'bg-text-secondary/15 text-text-secondary',
+  gold: 'bg-accent-gold/15 text-accent-gold',
 }
 
 export function Badge({ tone, children }: BadgeProps) {

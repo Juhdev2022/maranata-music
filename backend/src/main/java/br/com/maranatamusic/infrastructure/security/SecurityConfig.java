@@ -22,6 +22,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -35,6 +36,9 @@ public class SecurityConfig {
     // Permite H2 console apenas quando spring.h2.console.enabled=true (perfis dev/test)
     @Value("${spring.h2.console.enabled:false}")
     private boolean h2ConsoleEnabled;
+
+    @Value("${cors.allowed-origins:http://localhost:5173}")
+    private String allowedOriginsCsv;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
                           JwtAuthenticationFilter jwtAuthFilter) {
@@ -99,8 +103,16 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        List<String> origins = Arrays.stream(allowedOriginsCsv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+        if (origins.isEmpty()) {
+            throw new IllegalStateException("cors.allowed-origins não pode estar vazio");
+        }
+
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOrigins(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

@@ -108,18 +108,51 @@ Ajuste a lista conforme a realidade do ministério antes de rodar. Após o M5, e
 
 ---
 
-## 3. Deploy em produção (Render.com)
+## 3. Deploy em produção
 
-*A ser preenchido quando o deploy real acontecer. Estrutura sugerida:*
+### URLs
 
-- Criação do serviço Web no Render
-- Configuração de variáveis de ambiente (JWT_SECRET, DB_URL, DB_USERNAME, DB_PASSWORD)
-- Criação do banco Postgres no Render
-- Vinculação backend ↔ banco
-- Configuração de domínio próprio (opcional)
-- Habilitação do plano gratuito ou pago
-- Primeiro deploy via Git push
-- Confirmação via `curl /actuator/health`
+| Serviço | URL |
+|---------|-----|
+| API (Render) | https://maranata-music-api.onrender.com |
+| Health | https://maranata-music-api.onrender.com/actuator/health |
+| App (Vercel) | https://maranata-music.vercel.app |
+
+### Deploy automático
+
+Push na branch `main` dispara redeploy no **Render** (backend) e no **Vercel** (frontend).
+
+### Confirmação rápida (humano ou agente)
+
+```bash
+curl https://maranata-music-api.onrender.com/actuator/health
+# Esperado: {"status":"UP",...}
+```
+
+Testar login demo após deploy: `demo-lider@teste.com` / `demo123456`.
+
+Validar o app em **guia anônima** (PWA cacheia versão antiga).
+
+### Redeploy manual
+
+**Render:** Dashboard → serviço da API → **Manual Deploy** → Deploy latest commit.  
+Se deploy falhou ou comportamento estranho: **Clear build cache & deploy**.
+
+**Vercel:** Dashboard → projeto → **Deployments** → último → **Redeploy**.
+
+### Playbook para agentes de IA
+
+Procedimento completo (curl, Render API, Playwright, smoke tests): **`docs/DEPLOY_AGENTE.md`**.  
+Regra persistente no Cursor: **`.cursor/rules/deploy-producao.mdc`**.
+
+### Variáveis de ambiente (Render)
+
+- `JWT_SECRET`, `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`
+- Perfil Spring: `prod`
+
+### Cold start (plano free)
+
+Backend e Postgres podem hibernar após ~15 min sem tráfego. Primeira requisição após idle pode levar 1–3 min. Health UP não garante que login já responde — aguardar ou redeploy se 500 persistir.
 
 ---
 

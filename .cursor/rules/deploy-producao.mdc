@@ -1,0 +1,45 @@
+---
+description: Redeploy Render/Vercel e smoke test em produção após push ou bug reportado
+alwaysApply: true
+---
+
+# Deploy e verificação em produção
+
+Leia `docs/DEPLOY_AGENTE.md` antes de push ou quando o usuário reportar erro em produção.
+
+## Quando acionar (sem pedir confirmação extra)
+
+- Após `git push origin main` autorizado pelo usuário
+- Usuário reporta erro em produção logo após deploy (login 500, "dados inválidos", endpoint inexistente)
+- Frontend novo + backend antigo (sintoma típico: UI mudou mas API retorna 400/404/500 em rotas novas)
+
+## Ordem obrigatória
+
+1. Rodar `./mvnw test` e `npm run build` **antes** do push
+2. Push só com autorização explícita do usuário
+3. Aguardar deploy automático (Render + Vercel disparam no push em `main`)
+4. Verificar backend: `GET /actuator/health` → `"status":"UP"`
+5. Smoke API: `POST /api/auth/login` com credenciais demo
+6. Se health OK mas login ou rotas novas falham → **redeploy manual no Render** (API ou Playwright)
+7. Verificar frontend: abrir app em contexto limpo (Playwright) — guia anônima / disable cache
+8. Se app servir bundle antigo → **redeploy no Vercel** ou hard refresh; preferir redeploy se push já foi há >2 min
+9. Reportar ao usuário: status Render, status Vercel, resultado dos smokes
+
+## Ferramentas (preferência)
+
+1. **curl / Shell** — health, login, endpoints REST (sempre primeiro)
+2. **Render API** — se `RENDER_API_KEY` + `RENDER_SERVICE_ID` disponíveis no ambiente
+3. **Playwright MCP** — redeploy manual nos dashboards (sessão logada) + smoke visual no app
+4. **cursor-ide-browser MCP** — alternativa ao Playwright para smoke no PWA
+
+Não pedir à usuária para redeploy manual se o agente puder fazer via API ou Playwright.
+
+## URLs fixas
+
+- API: `https://maranata-music-api.onrender.com`
+- App: `https://maranata-music.vercel.app`
+- Demo líder: `demo-lider@teste.com` / `demo123456`
+
+## PWA
+
+Cache do service worker engana testes. Sempre validar em contexto sem cache (Playwright novo contexto ou guia anônima).

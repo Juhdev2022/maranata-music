@@ -109,7 +109,7 @@ public class AuthService {
         Set<String> papeis = userDetails.getUsuario().getPapeis().stream()
                 .map(Papel::name)
                 .collect(Collectors.toSet());
-        return new AuthResponse(token, userDetails.getUsuario().getNome(),
+        return new AuthResponse(userDetails.getUsuario().getId(), token, userDetails.getUsuario().getNome(),
                 userDetails.getUsername(), papeis);
     }
 }

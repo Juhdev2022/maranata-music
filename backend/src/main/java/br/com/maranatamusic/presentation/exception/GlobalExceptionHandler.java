@@ -2,6 +2,7 @@ package br.com.maranatamusic.presentation.exception;
 
 import br.com.maranatamusic.domain.exception.AcessoNaoAutorizadoException;
 import br.com.maranatamusic.domain.exception.CultoNaoEncontradoException;
+import br.com.maranatamusic.domain.exception.CultoSemMinistroException;
 import br.com.maranatamusic.domain.exception.EmailJaCadastradoException;
 import br.com.maranatamusic.domain.exception.EscalaNaoEncontradaException;
 import br.com.maranatamusic.domain.exception.EstadoEscalaInvalidoException;
@@ -9,10 +10,12 @@ import br.com.maranatamusic.domain.exception.InstrumentoEmUsoException;
 import br.com.maranatamusic.domain.exception.InstrumentoJaCadastradoException;
 import br.com.maranatamusic.domain.exception.InstrumentoJaEscaladoException;
 import br.com.maranatamusic.domain.exception.InstrumentoNaoEncontradoException;
+import br.com.maranatamusic.domain.exception.MusicaCultoNaoEncontradaException;
 import br.com.maranatamusic.domain.exception.MusicoInstrumentoNaoEncontradoException;
 import br.com.maranatamusic.domain.exception.MusicoJaEscaladoEmOutroCultoException;
 import br.com.maranatamusic.domain.exception.MusicoInstrumentoAmbiguoException;
 import br.com.maranatamusic.domain.exception.MusicoNaoTocaInstrumentoException;
+import br.com.maranatamusic.domain.exception.ObservacaoLiderObrigatoriaException;
 import br.com.maranatamusic.domain.exception.PrimeiroAcessoInvalidoException;
 import br.com.maranatamusic.domain.exception.PrimeiroAcessoNecessarioException;
 import br.com.maranatamusic.domain.exception.EstadoSolicitacaoInvalidoException;
@@ -221,6 +224,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(SubstitutoObrigatorioException.class)
     public ResponseEntity<ErroResponse> handleSubstitutoObrigatorio(SubstitutoObrigatorioException ex) {
+        return ResponseEntity.badRequest().body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(CultoSemMinistroException.class)
+    public ResponseEntity<ErroResponse> handleCultoSemMinistro(CultoSemMinistroException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(MusicaCultoNaoEncontradaException.class)
+    public ResponseEntity<ErroResponse> handleMusicaCultoNaoEncontrada(MusicaCultoNaoEncontradaException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ObservacaoLiderObrigatoriaException.class)
+    public ResponseEntity<ErroResponse> handleObservacaoLiderObrigatoria(ObservacaoLiderObrigatoriaException ex) {
         return ResponseEntity.badRequest().body(ErroResponse.simples(ex.getMessage()));
     }
 

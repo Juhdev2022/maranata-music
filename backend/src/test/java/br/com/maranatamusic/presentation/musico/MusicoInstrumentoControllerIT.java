@@ -13,6 +13,7 @@ import br.com.maranatamusic.domain.enums.Papel;
 import br.com.maranatamusic.infrastructure.persistence.CultoRepository;
 import br.com.maranatamusic.infrastructure.persistence.EscalaRepository;
 import br.com.maranatamusic.infrastructure.persistence.InstrumentoRepository;
+import br.com.maranatamusic.infrastructure.persistence.MusicaCultoRepository;
 import br.com.maranatamusic.infrastructure.persistence.MusicoInstrumentoRepository;
 import br.com.maranatamusic.infrastructure.persistence.UsuarioRepository;
 import br.com.maranatamusic.presentation.auth.LoginRequest;
@@ -67,11 +68,15 @@ class MusicoInstrumentoControllerIT {
     private EscalaRepository escalaRepository;
 
     @Autowired
+    private MusicaCultoRepository musicaCultoRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void limparBase() {
         escalaRepository.deleteAll();
+        musicaCultoRepository.deleteAll();
         cultoRepository.deleteAll();
         musicoInstrumentoRepository.deleteAll();
         usuarioRepository.deleteAll();

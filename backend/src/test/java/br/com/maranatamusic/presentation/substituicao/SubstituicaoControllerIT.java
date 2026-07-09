@@ -12,6 +12,7 @@ import br.com.maranatamusic.domain.enums.Papel;
 import br.com.maranatamusic.infrastructure.persistence.CultoRepository;
 import br.com.maranatamusic.infrastructure.persistence.EscalaRepository;
 import br.com.maranatamusic.infrastructure.persistence.InstrumentoRepository;
+import br.com.maranatamusic.infrastructure.persistence.MusicaCultoRepository;
 import br.com.maranatamusic.infrastructure.persistence.MusicoInstrumentoRepository;
 import br.com.maranatamusic.infrastructure.persistence.SolicitacaoSubstituicaoRepository;
 import br.com.maranatamusic.infrastructure.persistence.UsuarioRepository;
@@ -73,12 +74,16 @@ class SubstituicaoControllerIT {
     private SolicitacaoSubstituicaoRepository solicitacaoRepository;
 
     @Autowired
+    private MusicaCultoRepository musicaCultoRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void limparBase() {
         solicitacaoRepository.deleteAll();
         escalaRepository.deleteAll();
+        musicaCultoRepository.deleteAll();
         cultoRepository.deleteAll();
         musicoInstrumentoRepository.deleteAll();
         usuarioRepository.deleteAll();

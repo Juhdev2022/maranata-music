@@ -20,13 +20,13 @@ export function SubstituicoesPendentesPage() {
   const [erro, setErro] = useState(false)
   const showToast = useToast()
 
-  const [paraRejeitar, setParaRejeitar] = useState<SolicitacaoResponse | null>(null)
-  const [rejeitando, setRejeitando] = useState(false)
-
   const [paraAprovar, setParaAprovar] = useState<SolicitacaoResponse | null>(null)
+  const [aprovando, setAprovando] = useState(false)
+
+  const [paraEscolherOutro, setParaEscolherOutro] = useState<SolicitacaoResponse | null>(null)
   const [usuarios, setUsuarios] = useState<UsuarioResponse[]>([])
   const [substitutoFinalId, setSubstitutoFinalId] = useState('')
-  const [aprovando, setAprovando] = useState(false)
+  const [escolhendo, setEscolhendo] = useState(false)
 
   function carregar() {
     setCarregando(true)
@@ -40,21 +40,11 @@ export function SubstituicoesPendentesPage() {
 
   useEffect(carregar, [])
 
-  function abrirAprovar(solicitacao: SolicitacaoResponse) {
-    if (!solicitacao.substitutoSugerido) {
-      usuarioService.listar({ ativos: true }).then(setUsuarios)
-      setSubstitutoFinalId('')
-    }
-    setParaAprovar(solicitacao)
-  }
-
   async function handleAprovar() {
     if (!paraAprovar) return
     setAprovando(true)
     try {
-      await substituicaoService.aprovar(paraAprovar.id, {
-        substitutoFinalId: paraAprovar.substitutoSugerido ? null : Number(substitutoFinalId),
-      })
+      await substituicaoService.aprovar(paraAprovar.id)
       showToast('Substituição aprovada', 'success')
       setParaAprovar(null)
       carregar()
@@ -63,16 +53,24 @@ export function SubstituicoesPendentesPage() {
     }
   }
 
-  async function handleRejeitar() {
-    if (!paraRejeitar) return
-    setRejeitando(true)
+  function abrirEscolherOutro(solicitacao: SolicitacaoResponse) {
+    usuarioService.listar({ ativos: true }).then((lista) =>
+      setUsuarios(lista.filter((usuario) => usuario.id !== solicitacao.solicitante.id)),
+    )
+    setSubstitutoFinalId('')
+    setParaEscolherOutro(solicitacao)
+  }
+
+  async function handleEscolherOutro() {
+    if (!paraEscolherOutro || !substitutoFinalId) return
+    setEscolhendo(true)
     try {
-      await substituicaoService.rejeitar(paraRejeitar.id)
-      showToast('Solicitação rejeitada', 'success')
-      setParaRejeitar(null)
+      await substituicaoService.rejeitar(paraEscolherOutro.id, { substitutoFinalId: Number(substitutoFinalId) })
+      showToast('Substituição trocada', 'success')
+      setParaEscolherOutro(null)
       carregar()
     } finally {
-      setRejeitando(false)
+      setEscolhendo(false)
     }
   }
 
@@ -105,14 +103,14 @@ export function SubstituicoesPendentesPage() {
               <p className="text-sm text-text-secondary">Motivo: {MOTIVO_SUBSTITUICAO_LABEL[solicitacao.motivo]}</p>
               {solicitacao.observacao && <p className="text-sm text-text-secondary">"{solicitacao.observacao}"</p>}
               <p className="text-sm text-text-secondary">
-                Substituto sugerido: {solicitacao.substitutoSugerido?.nome ?? 'Nenhum (aberta)'}
+                Indicação do músico: {solicitacao.substitutoSugerido?.nome}
               </p>
               <div className="mt-2 flex gap-2">
-                <Button size="sm" onClick={() => abrirAprovar(solicitacao)} className="flex-1">
-                  Aprovar
+                <Button size="sm" onClick={() => setParaAprovar(solicitacao)} className="flex-1">
+                  Aprovar indicação
                 </Button>
-                <Button size="sm" variant="secondary" onClick={() => setParaRejeitar(solicitacao)} className="flex-1">
-                  Rejeitar
+                <Button size="sm" variant="secondary" onClick={() => abrirEscolherOutro(solicitacao)} className="flex-1">
+                  Escolher outro
                 </Button>
               </div>
             </Card>
@@ -120,19 +118,19 @@ export function SubstituicoesPendentesPage() {
       </div>
 
       <ConfirmModal
-        isOpen={paraAprovar !== null && !!paraAprovar?.substitutoSugerido}
+        isOpen={paraAprovar !== null}
         onClose={() => setParaAprovar(null)}
         onConfirm={handleAprovar}
         title="Aprovar substituição"
-        message={`Aprovar substituição de ${paraAprovar?.solicitante.nome} por ${paraAprovar?.substitutoSugerido?.nome}?`}
+        message={`Aprovar troca de ${paraAprovar?.solicitante.nome} por ${paraAprovar?.substitutoSugerido?.nome}?`}
         confirmLabel="Aprovar"
         confirming={aprovando}
       />
 
       <Modal
-        isOpen={paraAprovar !== null && !paraAprovar?.substitutoSugerido}
-        onClose={() => setParaAprovar(null)}
-        title="Escolher substituto"
+        isOpen={paraEscolherOutro !== null}
+        onClose={() => setParaEscolherOutro(null)}
+        title="Escolher outro substituto"
       >
         <div className="flex flex-col gap-4">
           <Select label="Substituto" value={substitutoFinalId} onChange={(e) => setSubstitutoFinalId(e.target.value)}>
@@ -143,21 +141,11 @@ export function SubstituicoesPendentesPage() {
               </option>
             ))}
           </Select>
-          <Button onClick={handleAprovar} disabled={!substitutoFinalId || aprovando}>
-            {aprovando ? 'Aprovando...' : 'Aprovar'}
+          <Button onClick={handleEscolherOutro} disabled={!substitutoFinalId || escolhendo}>
+            {escolhendo ? 'Trocando...' : 'Confirmar troca'}
           </Button>
         </div>
       </Modal>
-
-      <ConfirmModal
-        isOpen={paraRejeitar !== null}
-        onClose={() => setParaRejeitar(null)}
-        onConfirm={handleRejeitar}
-        title="Rejeitar solicitação"
-        message={`Rejeitar a solicitação de substituição de ${paraRejeitar?.solicitante.nome}?`}
-        confirmLabel="Rejeitar"
-        confirming={rejeitando}
-      />
     </div>
   )
 }

@@ -32,13 +32,14 @@ export function SolicitarSubstituicaoModal({ isOpen, onClose, escala, onSolicita
   }, [isOpen, escala.id])
 
   async function handleSolicitar() {
+    if (!substitutoSugeridoId) return
     setEnviando(true)
     try {
       await substituicaoService.solicitar({
         escalaId: escala.id,
         motivo,
         observacao: observacao || undefined,
-        substitutoSugeridoId: substitutoSugeridoId ? Number(substitutoSugeridoId) : undefined,
+        substitutoSugeridoId: Number(substitutoSugeridoId),
       })
       onSolicitado()
     } finally {
@@ -71,11 +72,11 @@ export function SolicitarSubstituicaoModal({ isOpen, onClose, escala, onSolicita
         </div>
 
         <Select
-          label="Substituto sugerido (opcional)"
+          label="Quem vai tocar no seu lugar?"
           value={substitutoSugeridoId}
           onChange={(e) => setSubstitutoSugeridoId(e.target.value)}
         >
-          <option value="">Deixar em aberto</option>
+          <option value="">Selecione</option>
           {substitutos.map((substituto) => (
             <option key={substituto.id} value={substituto.id}>
               {substituto.nome}
@@ -83,7 +84,7 @@ export function SolicitarSubstituicaoModal({ isOpen, onClose, escala, onSolicita
           ))}
         </Select>
 
-        <Button onClick={handleSolicitar} disabled={enviando}>
+        <Button onClick={handleSolicitar} disabled={!substitutoSugeridoId || enviando}>
           {enviando ? 'Enviando...' : 'Solicitar substituição'}
         </Button>
       </div>

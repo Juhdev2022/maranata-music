@@ -1,6 +1,6 @@
 import { api } from '../config/api'
 import type {
-  AprovarSubstituicaoRequest,
+  RejeitarSubstituicaoRequest,
   SolicitacaoResponse,
   SolicitarSubstituicaoRequest,
   SubstitutoElegivelResponse,
@@ -12,10 +12,10 @@ export const substituicaoService = {
 
   pendentes: () => api.get<SolicitacaoResponse[]>('/substituicoes/pendentes').then((res) => res.data),
 
-  aprovar: (id: number, payload: AprovarSubstituicaoRequest) =>
-    api.post<SolicitacaoResponse>(`/substituicoes/${id}/aprovar`, payload).then((res) => res.data),
+  aprovar: (id: number) => api.post<SolicitacaoResponse>(`/substituicoes/${id}/aprovar`).then((res) => res.data),
 
-  rejeitar: (id: number) => api.post<SolicitacaoResponse>(`/substituicoes/${id}/rejeitar`).then((res) => res.data),
+  rejeitar: (id: number, payload: RejeitarSubstituicaoRequest) =>
+    api.post<SolicitacaoResponse>(`/substituicoes/${id}/rejeitar`, payload).then((res) => res.data),
 
   substitutosElegiveis: (escalaId: number) =>
     api

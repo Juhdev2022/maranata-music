@@ -102,10 +102,10 @@ export interface SolicitarSubstituicaoRequest {
   escalaId: number
   motivo: MotivoSubstituicao
   observacao?: string
-  substitutoSugeridoId?: number
+  substitutoSugeridoId: number
 }
 
-export interface AprovarSubstituicaoRequest {
+export interface RejeitarSubstituicaoRequest {
   substitutoFinalId: number | null
 }
 

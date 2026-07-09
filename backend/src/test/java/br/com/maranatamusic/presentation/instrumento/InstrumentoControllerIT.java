@@ -132,6 +132,41 @@ class InstrumentoControllerIT {
                 .andExpect(jsonPath("$.erro").value("Instrumento já cadastrado: violão m4"));
     }
 
+    // ---- cenário 4b ----
+
+    @Test
+    void criarInstrumento_comNomeAcentuado_deveRetornar201EPreservarAcentos() throws Exception {
+        String token = obterTokenLider("lider4b@maranata.com");
+
+        mockMvc.perform(post("/api/instrumentos")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(new CriarInstrumentoRequest("Cajón", CategoriaInstrumento.PERCUSSAO))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nome").value("Cajón"));
+
+        mockMvc.perform(post("/api/instrumentos")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(new CriarInstrumentoRequest("Percussão", CategoriaInstrumento.PERCUSSAO))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nome").value("Percussão"));
+
+        mockMvc.perform(post("/api/instrumentos")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(new CriarInstrumentoRequest("Órgão", CategoriaInstrumento.TECLA))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nome").value("Órgão"));
+
+        mockMvc.perform(get("/api/instrumentos")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.nome == 'Cajón')]").exists())
+                .andExpect(jsonPath("$[?(@.nome == 'Percussão')]").exists())
+                .andExpect(jsonPath("$[?(@.nome == 'Órgão')]").exists());
+    }
+
     // ---- cenário 5 ----
 
     @Test

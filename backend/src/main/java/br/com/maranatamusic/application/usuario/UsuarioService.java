@@ -2,28 +2,54 @@ package br.com.maranatamusic.application.usuario;
 
 import br.com.maranatamusic.domain.Usuario;
 import br.com.maranatamusic.domain.enums.Papel;
+import br.com.maranatamusic.domain.exception.EmailJaCadastradoException;
 import br.com.maranatamusic.domain.exception.UltimoLiderException;
 import br.com.maranatamusic.domain.exception.UsuarioComEscalaFuturaException;
 import br.com.maranatamusic.domain.exception.UsuarioNaoEncontradoException;
 import br.com.maranatamusic.infrastructure.persistence.EscalaRepository;
 import br.com.maranatamusic.infrastructure.persistence.UsuarioRepository;
+import br.com.maranatamusic.presentation.usuario.dto.CriarUsuarioRequest;
 import br.com.maranatamusic.presentation.usuario.dto.UsuarioResponse;
 import br.com.maranatamusic.presentation.usuario.dto.UsuarioResumoResponse;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final EscalaRepository escalaRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, EscalaRepository escalaRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository, EscalaRepository escalaRepository,
+                           PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.escalaRepository = escalaRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Transactional
+    public UsuarioResponse criar(CriarUsuarioRequest request) {
+        if (usuarioRepository.existsByEmail(request.email())) {
+            throw new EmailJaCadastradoException(request.email());
+        }
+
+        Usuario usuario = new Usuario();
+        usuario.setNome(request.nome());
+        usuario.setEmail(request.email());
+        usuario.setTelefone(request.telefone());
+        usuario.setSenhaHash(passwordEncoder.encode(UUID.randomUUID().toString()));
+        usuario.setAtivo(true);
+        usuario.setPrecisaDefinirSenha(true);
+        usuario.getPapeis().add(Papel.MUSICO);
+
+        usuarioRepository.save(usuario);
+        return UsuarioResponse.from(usuario);
     }
 
     @Transactional(readOnly = true)

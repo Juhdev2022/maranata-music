@@ -3,9 +3,11 @@ package br.com.maranatamusic.presentation.usuario;
 import br.com.maranatamusic.application.usuario.UsuarioService;
 import br.com.maranatamusic.domain.enums.Papel;
 import br.com.maranatamusic.presentation.usuario.dto.AlterarPapelRequest;
+import br.com.maranatamusic.presentation.usuario.dto.CriarUsuarioRequest;
 import br.com.maranatamusic.presentation.usuario.dto.UsuarioResponse;
 import br.com.maranatamusic.presentation.usuario.dto.UsuarioResumoResponse;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,6 +36,13 @@ public class UsuarioController {
             @RequestParam(defaultValue = "true") boolean ativos,
             @RequestParam(required = false) Papel papel) {
         return ResponseEntity.ok(usuarioService.listar(ativos, papel));
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('LIDER')")
+    public ResponseEntity<UsuarioResponse> criar(@Valid @RequestBody CriarUsuarioRequest request) {
+        UsuarioResponse response = usuarioService.criar(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/{id}/papeis")

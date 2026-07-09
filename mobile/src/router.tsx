@@ -7,6 +7,7 @@ import { useIsLider } from './hooks/useIsLider'
 import { LoginPage } from './pages/auth/LoginPage'
 import { RegistroPage } from './pages/auth/RegistroPage'
 import { CriarCultoPage } from './pages/lider/CriarCultoPage'
+import { CriarUsuarioPage } from './pages/lider/CriarUsuarioPage'
 import { CultoDetalhePage } from './pages/lider/CultoDetalhePage'
 import { CultosPage } from './pages/lider/CultosPage'
 import { GestaoPage } from './pages/lider/GestaoPage'
@@ -37,6 +38,7 @@ export function AppRoutes() {
           <Route path="/gestao" element={<LiderGuard><GestaoPage /></LiderGuard>} />
           <Route path="/instrumentos" element={<LiderGuard><InstrumentosPage /></LiderGuard>} />
           <Route path="/usuarios" element={<LiderGuard><UsuariosPage /></LiderGuard>} />
+          <Route path="/usuarios/novo" element={<LiderGuard><CriarUsuarioPage /></LiderGuard>} />
         </Route>
       </Route>
 

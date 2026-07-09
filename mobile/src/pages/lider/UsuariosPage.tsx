@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '../../components/layout/PageHeader'
 import { UsuarioRow } from '../../components/domain/UsuarioRow'
 import { EmptyState } from '../../components/ui/EmptyState'
@@ -6,7 +7,16 @@ import { Spinner } from '../../components/ui/Spinner'
 import { usuarioService } from '../../services/usuarioService'
 import type { UsuarioResponse } from '../../types/api'
 
+function PlusIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  )
+}
+
 export function UsuariosPage() {
+  const navigate = useNavigate()
   const [mostrarInativos, setMostrarInativos] = useState(false)
   const [usuarios, setUsuarios] = useState<UsuarioResponse[] | null>(null)
   const [carregando, setCarregando] = useState(true)
@@ -30,7 +40,7 @@ export function UsuariosPage() {
   useEffect(carregar, [mostrarInativos])
 
   return (
-    <div>
+    <div className="relative min-h-screen">
       <PageHeader title="Usuários" />
 
       <div className="flex items-center justify-between px-4 py-3">
@@ -62,6 +72,15 @@ export function UsuariosPage() {
           !erro &&
           usuarios?.map((usuario) => <UsuarioRow key={usuario.id} usuario={usuario} onChanged={carregar} />)}
       </div>
+
+      <button
+        type="button"
+        aria-label="Adicionar usuário"
+        onClick={() => navigate('/usuarios/novo')}
+        className="fixed bottom-24 right-4 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-text-primary shadow-lg transition active:scale-95"
+      >
+        <PlusIcon />
+      </button>
     </div>
   )
 }

@@ -105,6 +105,13 @@ export interface UsuarioResponse {
   email: string
   ativo: boolean
   papeis: Papel[]
+  precisaDefinirSenha: boolean
+}
+
+export interface CriarUsuarioRequest {
+  nome: string
+  email: string
+  telefone?: string
 }
 
 export interface AlterarPapelRequest {

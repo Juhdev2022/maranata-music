@@ -36,6 +36,9 @@ public class Usuario {
     @Column(nullable = false)
     private boolean ativo = true;
 
+    @Column(name = "precisa_definir_senha", nullable = false)
+    private boolean precisaDefinirSenha = false;
+
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "usuario_papel",
@@ -62,6 +65,9 @@ public class Usuario {
 
     public boolean isAtivo() { return ativo; }
     public void setAtivo(boolean ativo) { this.ativo = ativo; }
+
+    public boolean isPrecisaDefinirSenha() { return precisaDefinirSenha; }
+    public void setPrecisaDefinirSenha(boolean precisaDefinirSenha) { this.precisaDefinirSenha = precisaDefinirSenha; }
 
     public Set<Papel> getPapeis() { return papeis; }
     public void setPapeis(Set<Papel> papeis) { this.papeis = papeis; }

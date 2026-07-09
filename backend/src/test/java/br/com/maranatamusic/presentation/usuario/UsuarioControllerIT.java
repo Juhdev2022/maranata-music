@@ -15,6 +15,7 @@ import br.com.maranatamusic.infrastructure.persistence.MusicoInstrumentoReposito
 import br.com.maranatamusic.infrastructure.persistence.UsuarioRepository;
 import br.com.maranatamusic.presentation.auth.LoginRequest;
 import br.com.maranatamusic.presentation.usuario.dto.AlterarPapelRequest;
+import br.com.maranatamusic.presentation.usuario.dto.CriarUsuarioRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -272,6 +273,50 @@ class UsuarioControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(new LoginRequest(musico.getEmail(), SENHA_PADRAO))))
                 .andExpect(status().isOk());
+    }
+
+    // ---- cenário 16 ----
+
+    @Test
+    void criarUsuario_comoLider_deveRetornar201ComPrecisaDefinirSenha() throws Exception {
+        String tokenLider = obterTokenLider("lider16@maranata.com");
+
+        mockMvc.perform(post("/api/usuarios")
+                        .header("Authorization", "Bearer " + tokenLider)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(new CriarUsuarioRequest("Demo Cento e Vinte e Três", "demo123@teste.com", null))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.email").value("demo123@teste.com"))
+                .andExpect(jsonPath("$.precisaDefinirSenha").value(true))
+                .andExpect(jsonPath("$.papeis", org.hamcrest.Matchers.hasItem("MUSICO")));
+    }
+
+    // ---- cenário 17 ----
+
+    @Test
+    void criarUsuario_comoMusico_deveRetornar403() throws Exception {
+        String tokenMusico = obterTokenMusico("musico17-criar@maranata.com");
+
+        mockMvc.perform(post("/api/usuarios")
+                        .header("Authorization", "Bearer " + tokenMusico)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(new CriarUsuarioRequest("Alguem", "alguem17@teste.com", null))))
+                .andExpect(status().isForbidden());
+    }
+
+    // ---- cenário 18 ----
+
+    @Test
+    void criarUsuario_emailDuplicado_deveRetornar409() throws Exception {
+        String tokenLider = obterTokenLider("lider18-criar@maranata.com");
+        criarUsuarioComPapel("Existente", "duplicado18@teste.com", Papel.MUSICO);
+
+        mockMvc.perform(post("/api/usuarios")
+                        .header("Authorization", "Bearer " + tokenLider)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(new CriarUsuarioRequest("Outro Nome", "duplicado18@teste.com", null))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.erro").value("Email já cadastrado"));
     }
 
     // ---- helpers ----

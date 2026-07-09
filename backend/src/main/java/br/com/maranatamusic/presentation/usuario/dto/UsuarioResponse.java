@@ -10,7 +10,8 @@ public record UsuarioResponse(
         String nome,
         String email,
         boolean ativo,
-        Set<Papel> papeis
+        Set<Papel> papeis,
+        boolean precisaDefinirSenha
 ) {
 
     public static UsuarioResponse from(Usuario usuario) {
@@ -19,7 +20,8 @@ public record UsuarioResponse(
                 usuario.getNome(),
                 usuario.getEmail(),
                 usuario.isAtivo(),
-                usuario.getPapeis()
+                usuario.getPapeis(),
+                usuario.isPrecisaDefinirSenha()
         );
     }
 }

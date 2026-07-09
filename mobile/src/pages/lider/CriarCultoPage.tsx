@@ -11,7 +11,7 @@ import type { UsuarioResponse } from '../../types/api'
 import type { CultoTipo } from '../../types/enums'
 import { CULTO_TIPO_LABEL } from '../../types/enums'
 
-const TIPOS: CultoTipo[] = ['DOMINGO_MANHA', 'DOMINGO_NOITE', 'QUARTA', 'ESPECIAL']
+const TIPOS: CultoTipo[] = ['DOMINGO_MANHA', 'DOMINGO_NOITE', 'TERCA', 'QUARTA', 'QUINTA', 'SABADO', 'ESPECIAL']
 
 export function CriarCultoPage() {
   const navigate = useNavigate()
@@ -53,7 +53,7 @@ export function CriarCultoPage() {
           value={dataHora}
           onChange={(e) => setDataHora(e.target.value)}
         />
-        <Select label="Tipo" required value={tipo} onChange={(e) => setTipo(e.target.value as CultoTipo)}>
+        <Select label="Dia da semana" required value={tipo} onChange={(e) => setTipo(e.target.value as CultoTipo)}>
           {TIPOS.map((valor) => (
             <option key={valor} value={valor}>
               {CULTO_TIPO_LABEL[valor]}

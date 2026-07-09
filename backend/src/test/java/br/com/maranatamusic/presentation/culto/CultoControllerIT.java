@@ -359,6 +359,21 @@ class CultoControllerIT {
                 .andExpect(jsonPath("$[0].totalEscalados").value(2));
     }
 
+    // ---- cenário 18 ----
+
+    @Test
+    void criarCulto_comNovoTipoTerca_deveRetornar201() throws Exception {
+        String token = obterTokenLider("lider18@maranata.com");
+
+        mockMvc.perform(post("/api/cultos")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(new CriarCultoRequest(
+                                LocalDateTime.of(2026, 8, 4, 19, 0), CultoTipo.TERCA, null, null))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").isNumber());
+    }
+
     // ---- helpers ----
 
     private String obterTokenLider(String email) throws Exception {

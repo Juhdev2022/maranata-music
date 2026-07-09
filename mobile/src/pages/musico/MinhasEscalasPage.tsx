@@ -50,10 +50,9 @@ export function MinhasEscalasPage() {
     showToast('Presença confirmada', 'success')
   }
 
-  async function handleRecusar(id: number) {
-    const atualizada = await escalaService.recusar(id)
-    setEscalas((atual) => atual?.map((e) => (e.id === id ? atualizada : e)) ?? atual)
-    showToast('Presença recusada', 'success')
+  function handleSubstituicaoSolicitada() {
+    showToast('Solicitação enviada', 'success')
+    escalaService.minhas(mes).then(setEscalas)
   }
 
   return (
@@ -98,7 +97,12 @@ export function MinhasEscalasPage() {
         {!carregando &&
           !erro &&
           escalas?.map((escala) => (
-            <EscalaCard key={escala.id} escala={escala} onConfirmar={handleConfirmar} onRecusar={handleRecusar} />
+            <EscalaCard
+              key={escala.id}
+              escala={escala}
+              onConfirmar={handleConfirmar}
+              onSubstituicaoSolicitada={handleSubstituicaoSolicitada}
+            />
           ))}
       </div>
     </div>

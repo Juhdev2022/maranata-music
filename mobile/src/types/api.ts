@@ -1,4 +1,4 @@
-import type { CategoriaInstrumento, CultoTipo, EscalaStatus, Papel } from './enums'
+import type { CategoriaInstrumento, CultoTipo, EscalaStatus, MotivoSubstituicao, Papel, SolicitacaoStatus } from './enums'
 
 export interface AuthResponse {
   token: string
@@ -95,6 +95,36 @@ export interface EscalaMinhaResponse {
   instrumento: InstrumentoResumo
   status: EscalaStatus
   confirmadaEm: string | null
+  solicitacaoAberta: boolean
+}
+
+export interface SolicitarSubstituicaoRequest {
+  escalaId: number
+  motivo: MotivoSubstituicao
+  observacao?: string
+  substitutoSugeridoId?: number
+}
+
+export interface AprovarSubstituicaoRequest {
+  substitutoFinalId: number | null
+}
+
+export interface SolicitacaoResponse {
+  id: number
+  escalaId: number
+  solicitante: MusicoResumo
+  culto: CultoResumo
+  instrumento: InstrumentoResumo
+  motivo: MotivoSubstituicao
+  observacao: string | null
+  substitutoSugerido: MusicoResumo | null
+  status: SolicitacaoStatus
+  substitutoFinal: MusicoResumo | null
+}
+
+export interface SubstitutoElegivelResponse {
+  id: number
+  nome: string
 }
 
 export interface InstrumentoResponse {

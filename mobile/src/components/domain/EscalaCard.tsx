@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
+import { SolicitarSubstituicaoModal } from './SolicitarSubstituicaoModal'
 import type { EscalaMinhaResponse } from '../../types/api'
 import { CATEGORIA_INSTRUMENTO_LABEL, ESCALA_STATUS_LABEL, ESCALA_STATUS_TONE } from '../../types/enums'
 import { formatCultoDataHora } from '../../utils/dateFormat'
@@ -9,11 +10,12 @@ import { formatCultoDataHora } from '../../utils/dateFormat'
 interface EscalaCardProps {
   escala: EscalaMinhaResponse
   onConfirmar: (id: number) => Promise<void>
-  onRecusar: (id: number) => Promise<void>
+  onSubstituicaoSolicitada: () => void
 }
 
-export function EscalaCard({ escala, onConfirmar, onRecusar }: EscalaCardProps) {
+export function EscalaCard({ escala, onConfirmar, onSubstituicaoSolicitada }: EscalaCardProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [modalAberto, setModalAberto] = useState(false)
 
   async function handleConfirmar() {
     setIsSubmitting(true)
@@ -24,14 +26,12 @@ export function EscalaCard({ escala, onConfirmar, onRecusar }: EscalaCardProps) 
     }
   }
 
-  async function handleRecusar() {
-    setIsSubmitting(true)
-    try {
-      await onRecusar(escala.id)
-    } finally {
-      setIsSubmitting(false)
-    }
+  function handleSolicitado() {
+    setModalAberto(false)
+    onSubstituicaoSolicitada()
   }
+
+  const podeAgir = escala.status === 'PENDENTE' || escala.status === 'CONFIRMADA'
 
   return (
     <Card className="flex flex-col gap-3">
@@ -45,22 +45,35 @@ export function EscalaCard({ escala, onConfirmar, onRecusar }: EscalaCardProps) 
         <Badge tone={ESCALA_STATUS_TONE[escala.status]}>{ESCALA_STATUS_LABEL[escala.status]}</Badge>
       </div>
 
-      {escala.status === 'PENDENTE' && (
-        <div className="flex gap-2">
-          <Button size="sm" disabled={isSubmitting} onClick={handleConfirmar} className="flex-1">
-            Confirmar
-          </Button>
-          <Button size="sm" variant="secondary" disabled={isSubmitting} onClick={handleRecusar} className="flex-1">
-            Recusar
-          </Button>
-        </div>
+      {escala.solicitacaoAberta ? (
+        <Badge tone="gold">Aguardando líder</Badge>
+      ) : (
+        podeAgir && (
+          <div className="flex gap-2">
+            {escala.status === 'PENDENTE' && (
+              <Button size="sm" disabled={isSubmitting} onClick={handleConfirmar} className="flex-1">
+                Confirmar
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={isSubmitting}
+              onClick={() => setModalAberto(true)}
+              className="flex-1"
+            >
+              Solicitar substituição
+            </Button>
+          </div>
+        )
       )}
 
-      {escala.status === 'CONFIRMADA' && (
-        <Button size="sm" variant="ghost" disabled={isSubmitting} onClick={handleRecusar} className="self-start">
-          Não vou poder
-        </Button>
-      )}
+      <SolicitarSubstituicaoModal
+        isOpen={modalAberto}
+        onClose={() => setModalAberto(false)}
+        escala={escala}
+        onSolicitado={handleSolicitado}
+      />
     </Card>
   )
 }

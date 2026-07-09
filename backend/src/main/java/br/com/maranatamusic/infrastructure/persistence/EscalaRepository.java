@@ -15,6 +15,9 @@ public interface EscalaRepository extends JpaRepository<Escala, Long> {
 
     boolean existsByCultoIdAndInstrumentoId(Long cultoId, Long instrumentoId);
 
+    // Usado na substituição: verifica o slot ignorando a própria escala que está sendo substituída.
+    boolean existsByCultoIdAndInstrumentoIdAndIdNot(Long cultoId, Long instrumentoId, Long id);
+
     boolean existsByInstrumentoId(Long instrumentoId);
 
     long countByCultoId(Long cultoId);

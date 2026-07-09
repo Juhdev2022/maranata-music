@@ -11,10 +11,11 @@ public record EscalaMinhaResponse(
         CultoResumo culto,
         InstrumentoResumo instrumento,
         EscalaStatus status,
-        LocalDateTime confirmadaEm
+        LocalDateTime confirmadaEm,
+        boolean solicitacaoAberta
 ) {
 
-    public static EscalaMinhaResponse from(Escala escala) {
+    public static EscalaMinhaResponse from(Escala escala, boolean solicitacaoAberta) {
         return new EscalaMinhaResponse(
                 escala.getId(),
                 new CultoResumo(
@@ -26,7 +27,8 @@ public record EscalaMinhaResponse(
                         escala.getInstrumento().getNome(),
                         escala.getInstrumento().getCategoria()),
                 escala.getStatus(),
-                escala.getConfirmadaEm()
+                escala.getConfirmadaEm(),
+                solicitacaoAberta
         );
     }
 }

@@ -15,7 +15,12 @@ import br.com.maranatamusic.domain.exception.MusicoInstrumentoAmbiguoException;
 import br.com.maranatamusic.domain.exception.MusicoNaoTocaInstrumentoException;
 import br.com.maranatamusic.domain.exception.PrimeiroAcessoInvalidoException;
 import br.com.maranatamusic.domain.exception.PrimeiroAcessoNecessarioException;
+import br.com.maranatamusic.domain.exception.EstadoSolicitacaoInvalidoException;
 import br.com.maranatamusic.domain.exception.SenhasNaoConferemException;
+import br.com.maranatamusic.domain.exception.SolicitacaoJaExisteException;
+import br.com.maranatamusic.domain.exception.SolicitacaoSubstituicaoNaoEncontradaException;
+import br.com.maranatamusic.domain.exception.SubstitutoNaoElegivelException;
+import br.com.maranatamusic.domain.exception.SubstitutoObrigatorioException;
 import br.com.maranatamusic.domain.exception.UltimoLiderException;
 import br.com.maranatamusic.domain.exception.UsuarioComEscalaFuturaException;
 import br.com.maranatamusic.domain.exception.UsuarioInativoException;
@@ -192,6 +197,31 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PrimeiroAcessoNecessarioException.class)
     public ResponseEntity<ErroResponse> handlePrimeiroAcessoNecessario(PrimeiroAcessoNecessarioException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(SolicitacaoSubstituicaoNaoEncontradaException.class)
+    public ResponseEntity<ErroResponse> handleSolicitacaoSubstituicaoNaoEncontrada(SolicitacaoSubstituicaoNaoEncontradaException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(SolicitacaoJaExisteException.class)
+    public ResponseEntity<ErroResponse> handleSolicitacaoJaExiste(SolicitacaoJaExisteException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(SubstitutoNaoElegivelException.class)
+    public ResponseEntity<ErroResponse> handleSubstitutoNaoElegivel(SubstitutoNaoElegivelException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(EstadoSolicitacaoInvalidoException.class)
+    public ResponseEntity<ErroResponse> handleEstadoSolicitacaoInvalido(EstadoSolicitacaoInvalidoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(SubstitutoObrigatorioException.class)
+    public ResponseEntity<ErroResponse> handleSubstitutoObrigatorio(SubstitutoObrigatorioException ex) {
+        return ResponseEntity.badRequest().body(ErroResponse.simples(ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

@@ -2,10 +2,12 @@ package br.com.maranatamusic.application.escala;
 
 import br.com.maranatamusic.domain.Escala;
 import br.com.maranatamusic.domain.enums.EscalaStatus;
+import br.com.maranatamusic.domain.enums.SolicitacaoStatus;
 import br.com.maranatamusic.domain.exception.AcessoNaoAutorizadoException;
 import br.com.maranatamusic.domain.exception.EscalaNaoEncontradaException;
 import br.com.maranatamusic.domain.exception.EstadoEscalaInvalidoException;
 import br.com.maranatamusic.infrastructure.persistence.EscalaRepository;
+import br.com.maranatamusic.infrastructure.persistence.SolicitacaoSubstituicaoRepository;
 import br.com.maranatamusic.presentation.escala.dto.EscalaMinhaResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +21,12 @@ import java.util.List;
 public class EscalaService {
 
     private final EscalaRepository escalaRepository;
+    private final SolicitacaoSubstituicaoRepository solicitacaoSubstituicaoRepository;
 
-    public EscalaService(EscalaRepository escalaRepository) {
+    public EscalaService(EscalaRepository escalaRepository,
+                          SolicitacaoSubstituicaoRepository solicitacaoSubstituicaoRepository) {
         this.escalaRepository = escalaRepository;
+        this.solicitacaoSubstituicaoRepository = solicitacaoSubstituicaoRepository;
     }
 
     @Transactional(readOnly = true)
@@ -31,7 +36,7 @@ public class EscalaService {
 
         return escalaRepository.findByUsuarioIdAndCultoDataHoraBetween(usuarioId, inicio, fim).stream()
                 .sorted(Comparator.comparing(escala -> escala.getCulto().getDataHora()))
-                .map(EscalaMinhaResponse::from)
+                .map(escala -> EscalaMinhaResponse.from(escala, temSolicitacaoAberta(escala.getId())))
                 .toList();
     }
 
@@ -41,7 +46,7 @@ public class EscalaService {
 
         if (escala.getStatus() == EscalaStatus.CONFIRMADA) {
             // Idempotente: não reatualiza confirmadaEm, preserva o momento da confirmação original.
-            return EscalaMinhaResponse.from(escala);
+            return EscalaMinhaResponse.from(escala, temSolicitacaoAberta(escala.getId()));
         }
 
         if (escala.getStatus() == EscalaStatus.SUBSTITUIDA || escala.getStatus() == EscalaStatus.RECUSADA) {
@@ -51,7 +56,7 @@ public class EscalaService {
         escala.setStatus(EscalaStatus.CONFIRMADA);
         escala.setConfirmadaEm(LocalDateTime.now());
         escalaRepository.save(escala);
-        return EscalaMinhaResponse.from(escala);
+        return EscalaMinhaResponse.from(escala, temSolicitacaoAberta(escala.getId()));
     }
 
     @Transactional
@@ -64,7 +69,11 @@ public class EscalaService {
 
         escala.setStatus(EscalaStatus.RECUSADA);
         escalaRepository.save(escala);
-        return EscalaMinhaResponse.from(escala);
+        return EscalaMinhaResponse.from(escala, temSolicitacaoAberta(escala.getId()));
+    }
+
+    private boolean temSolicitacaoAberta(Long escalaId) {
+        return solicitacaoSubstituicaoRepository.existsByEscalaIdAndStatus(escalaId, SolicitacaoStatus.ABERTA);
     }
 
     private Escala buscarEscalaDoUsuario(Long escalaId, Long usuarioId) {

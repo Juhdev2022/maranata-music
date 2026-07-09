@@ -5,4 +5,8 @@ public class AcessoNaoAutorizadoException extends RuntimeException {
     public AcessoNaoAutorizadoException() {
         super("Você não pode confirmar escala de outro músico");
     }
+
+    public AcessoNaoAutorizadoException(String mensagem) {
+        super(mensagem);
+    }
 }

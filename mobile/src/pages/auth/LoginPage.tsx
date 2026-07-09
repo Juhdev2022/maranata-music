@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { isAxiosError } from 'axios'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -20,6 +21,11 @@ export function LoginPage() {
       const response = await authService.login({ email, senha })
       login(response)
       navigate('/', { replace: true })
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 403) {
+        navigate('/primeiro-acesso', { state: { email } })
+        return
+      }
     } finally {
       setCarregando(false)
     }
@@ -55,7 +61,7 @@ export function LoginPage() {
         </Link>
       </p>
       <p className="mt-2 text-center text-sm text-text-secondary">
-        <Link to="/primeiro-acesso" className="text-accent-gold">
+        <Link to="/primeiro-acesso" state={{ email }} className="text-accent-gold">
           Primeiro acesso
         </Link>
       </p>

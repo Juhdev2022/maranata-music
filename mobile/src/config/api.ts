@@ -28,6 +28,10 @@ api.interceptors.response.use(
     }
 
     if (status === 403) {
+      // Login pendente de primeiro acesso: o componente trata o redirect, sem toast genérico.
+      if (error.config?.url?.includes('/auth/login')) {
+        return Promise.reject(error)
+      }
       useToastStore.getState().show('Acesso negado', 'error')
       return Promise.reject(error)
     }

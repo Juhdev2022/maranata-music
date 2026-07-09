@@ -8,14 +8,6 @@ import { Spinner } from '../../components/ui/Spinner'
 import { usuarioService } from '../../services/usuarioService'
 import type { UsuarioResponse } from '../../types/api'
 
-function PlusIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 5v14M5 12h14" />
-    </svg>
-  )
-}
-
 export function UsuariosPage() {
   const navigate = useNavigate()
   const [mostrarInativos, setMostrarInativos] = useState(false)
@@ -75,17 +67,6 @@ export function UsuariosPage() {
         {!carregando &&
           !erro &&
           usuarios?.map((usuario) => <UsuarioRow key={usuario.id} usuario={usuario} onChanged={carregar} />)}
-      </div>
-
-      <div className="fixed inset-x-0 bottom-24 z-50 mx-auto flex max-w-md justify-end pr-4">
-        <button
-          type="button"
-          aria-label="Adicionar usuário"
-          onClick={() => navigate('/usuarios/novo')}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-text-primary shadow-lg transition active:scale-95"
-        >
-          <PlusIcon />
-        </button>
       </div>
     </div>
   )

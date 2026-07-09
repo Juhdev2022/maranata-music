@@ -1,18 +1,29 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { authService } from '../../services/authService'
 import { useAuthStore } from '../../stores/authStore'
 
+interface LocationState {
+  email?: string
+}
+
 export function PrimeiroAcessoPage() {
+  const location = useLocation()
   const navigate = useNavigate()
   const login = useAuthStore((state) => state.login)
-  const [email, setEmail] = useState('')
+  const emailDoState = (location.state as LocationState | null)?.email
   const [senha, setSenha] = useState('')
   const [confirmarSenha, setConfirmarSenha] = useState('')
   const [carregando, setCarregando] = useState(false)
+
+  if (!emailDoState) {
+    return <Navigate to="/login" replace />
+  }
+
+  const email: string = emailDoState
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -30,17 +41,9 @@ export function PrimeiroAcessoPage() {
     <div className="flex min-h-screen flex-col justify-center px-6 py-12">
       <h1 className="mb-2 text-2xl font-semibold">Primeiro acesso</h1>
       <p className="mb-8 text-sm text-text-secondary">
-        Seu líder já criou sua conta. Defina sua senha pra começar a usar o app.
+        Definindo senha para <span className="text-text-primary">{email}</span>
       </p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <Input
-          label="Email"
-          type="email"
-          autoComplete="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
         <Input
           label="Senha"
           type="password"

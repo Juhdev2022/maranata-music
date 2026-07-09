@@ -1,8 +1,10 @@
-# Deploy — playbook para agentes (Claude Code / Cursor)
+# Deploy — playbook para Claude Code
 
-> Procedimento operacional para **agentes de IA**. Humanos: ver também `docs/OPERACAO.md` §3.
+> Procedimento operacional para **Claude Code** (VS Code). **Não é responsabilidade do Cursor.**
 >
-> Objetivo: após push ou bug em produção, o agente **não para no "faça redeploy manual"** — executa verificação, redeploy e smoke test sozinho quando possível.
+> Claude Code lê `CLAUDE.md` na raiz do repo a cada sessão. Humanos: ver também `docs/OPERACAO.md` §3.
+>
+> Objetivo: após push ou bug em produção, o Claude Code **não para no "faça redeploy manual"** — executa verificação, redeploy e smoke test sozinho quando possível.
 
 ---
 
@@ -81,18 +83,20 @@ curl.exe -s -X POST "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deplo
 
 Aguardar status **Live** no dashboard ou repetir health até UP.
 
-**Opção B — Playwright MCP (sessão logada no GitHub/Google)**
+**Opção B — Playwright / automação de browser (sessão logada no GitHub/Google)**
 
-1. `browser_navigate` → `https://dashboard.render.com`
-2. Abrir serviço **maranata-music-api** (ou nome equivalente)
-3. Clicar **Manual Deploy** → **Deploy latest commit** (ou Clear build cache & deploy se deploy falhou)
+Usar a extensão Playwright ou browser MCP disponível no ambiente Claude Code.
+
+1. Abrir `https://dashboard.render.com`
+2. Serviço **maranata-music-api** (ou nome equivalente)
+3. **Manual Deploy** → **Deploy latest commit** (ou Clear build cache & deploy se deploy falhou)
 4. Aguardar badge **Live** (poll a página ou health a cada 30s)
 
 ### 4.4 Verificar frontend
 
-**Opção A — Playwright / browser MCP (contexto limpo)**
+**Opção A — Playwright / browser (contexto limpo)**
 
-1. `browser_navigate` → `https://maranata-music.vercel.app` (novo contexto / sem cache)
+1. Abrir `https://maranata-music.vercel.app` em contexto novo / sem cache
 2. Login `demo-lider@teste.com` / `demo123456`
 3. Smoke do fluxo alterado (ex.: culto → observações, escalar, remover)
 
@@ -149,6 +153,6 @@ Resumo em 3–5 linhas:
 
 ## 7. Referência rápida
 
-- Regra Cursor: `.cursor/rules/deploy-producao.mdc`
+- Instruções Claude Code: `CLAUDE.md` (raiz do repo)
 - Operação humana: `docs/OPERACAO.md`
 - Credenciais demo: `demo-lider@teste.com` / `demo123456`

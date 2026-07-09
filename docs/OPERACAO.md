@@ -140,10 +140,11 @@ Se deploy falhou ou comportamento estranho: **Clear build cache & deploy**.
 
 **Vercel:** Dashboard → projeto → **Deployments** → último → **Redeploy**.
 
-### Playbook para agentes de IA
+### Playbook para Claude Code
 
 Procedimento completo (curl, Render API, Playwright, smoke tests): **`docs/DEPLOY_AGENTE.md`**.  
-Regra persistente no Cursor: **`.cursor/rules/deploy-producao.mdc`**.
+Instruções por sessão: **`CLAUDE.md`** na raiz do repo.  
+Deploy automatizado é responsabilidade do **Claude Code**, não do Cursor.
 
 ### Variáveis de ambiente (Render)
 

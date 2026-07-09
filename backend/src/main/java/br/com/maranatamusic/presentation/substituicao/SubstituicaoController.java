@@ -2,7 +2,7 @@ package br.com.maranatamusic.presentation.substituicao;
 
 import br.com.maranatamusic.application.substituicao.SubstituicaoService;
 import br.com.maranatamusic.infrastructure.security.CustomUserDetails;
-import br.com.maranatamusic.presentation.substituicao.dto.AprovarSubstituicaoRequest;
+import br.com.maranatamusic.presentation.substituicao.dto.RejeitarSubstituicaoRequest;
 import br.com.maranatamusic.presentation.substituicao.dto.SolicitacaoResponse;
 import br.com.maranatamusic.presentation.substituicao.dto.SolicitarSubstituicaoRequest;
 import br.com.maranatamusic.presentation.substituicao.dto.SubstitutoElegivelResponse;
@@ -47,15 +47,16 @@ public class SubstituicaoController {
     @PostMapping("/{id}/aprovar")
     @PreAuthorize("hasRole('LIDER')")
     public ResponseEntity<SolicitacaoResponse> aprovar(@PathVariable Long id,
-                                                        @RequestBody AprovarSubstituicaoRequest request,
                                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
-        return ResponseEntity.ok(substituicaoService.aprovar(id, request, userDetails.getUsuario().getId()));
+        return ResponseEntity.ok(substituicaoService.aprovar(id, userDetails.getUsuario().getId()));
     }
 
     @PostMapping("/{id}/rejeitar")
     @PreAuthorize("hasRole('LIDER')")
-    public ResponseEntity<SolicitacaoResponse> rejeitar(@PathVariable Long id) {
-        return ResponseEntity.ok(substituicaoService.rejeitar(id));
+    public ResponseEntity<SolicitacaoResponse> rejeitar(@PathVariable Long id,
+                                                         @RequestBody RejeitarSubstituicaoRequest request,
+                                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(substituicaoService.rejeitar(id, request, userDetails.getUsuario().getId()));
     }
 
     @GetMapping("/substitutos-elegiveis")

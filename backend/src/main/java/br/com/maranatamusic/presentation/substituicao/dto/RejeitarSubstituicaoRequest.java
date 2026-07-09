@@ -1,5 +1,5 @@
 package br.com.maranatamusic.presentation.substituicao.dto;
 
-public record AprovarSubstituicaoRequest(
+public record RejeitarSubstituicaoRequest(
         Long substitutoFinalId
 ) {}

@@ -1,8 +1,6 @@
 package br.com.maranatamusic.application.substituicao;
 
 import br.com.maranatamusic.domain.Escala;
-import br.com.maranatamusic.domain.MusicoInstrumento;
-import br.com.maranatamusic.domain.MusicoInstrumentoId;
 import br.com.maranatamusic.domain.SolicitacaoSubstituicao;
 import br.com.maranatamusic.domain.Usuario;
 import br.com.maranatamusic.domain.enums.CategoriaInstrumento;
@@ -19,10 +17,9 @@ import br.com.maranatamusic.domain.exception.SubstitutoNaoElegivelException;
 import br.com.maranatamusic.domain.exception.SubstitutoObrigatorioException;
 import br.com.maranatamusic.domain.exception.UsuarioNaoEncontradoException;
 import br.com.maranatamusic.infrastructure.persistence.EscalaRepository;
-import br.com.maranatamusic.infrastructure.persistence.MusicoInstrumentoRepository;
 import br.com.maranatamusic.infrastructure.persistence.SolicitacaoSubstituicaoRepository;
 import br.com.maranatamusic.infrastructure.persistence.UsuarioRepository;
-import br.com.maranatamusic.presentation.substituicao.dto.AprovarSubstituicaoRequest;
+import br.com.maranatamusic.presentation.substituicao.dto.RejeitarSubstituicaoRequest;
 import br.com.maranatamusic.presentation.substituicao.dto.SolicitacaoResponse;
 import br.com.maranatamusic.presentation.substituicao.dto.SolicitarSubstituicaoRequest;
 import br.com.maranatamusic.presentation.substituicao.dto.SubstitutoElegivelResponse;
@@ -35,22 +32,16 @@ import java.util.List;
 @Service
 public class SubstituicaoService {
 
-    private static final long JANELA_HORAS_ANTES = 2;
-    private static final long JANELA_HORAS_DEPOIS = 4;
-
     private final SolicitacaoSubstituicaoRepository solicitacaoRepository;
     private final EscalaRepository escalaRepository;
     private final UsuarioRepository usuarioRepository;
-    private final MusicoInstrumentoRepository musicoInstrumentoRepository;
 
     public SubstituicaoService(SolicitacaoSubstituicaoRepository solicitacaoRepository,
                                 EscalaRepository escalaRepository,
-                                UsuarioRepository usuarioRepository,
-                                MusicoInstrumentoRepository musicoInstrumentoRepository) {
+                                UsuarioRepository usuarioRepository) {
         this.solicitacaoRepository = solicitacaoRepository;
         this.escalaRepository = escalaRepository;
         this.usuarioRepository = usuarioRepository;
-        this.musicoInstrumentoRepository = musicoInstrumentoRepository;
     }
 
     @Transactional
@@ -70,18 +61,16 @@ public class SubstituicaoService {
             throw new SolicitacaoJaExisteException();
         }
 
+        Usuario sugerido = usuarioRepository.findById(request.substitutoSugeridoId())
+                .orElseThrow(() -> new UsuarioNaoEncontradoException(request.substitutoSugeridoId()));
+        validarSubstitutoBasico(escala, sugerido);
+
         SolicitacaoSubstituicao solicitacao = new SolicitacaoSubstituicao();
         solicitacao.setEscala(escala);
         solicitacao.setSolicitante(escala.getUsuario());
         solicitacao.setMotivo(request.motivo());
         solicitacao.setObservacao(request.observacao());
-
-        if (request.substitutoSugeridoId() != null) {
-            Usuario sugerido = usuarioRepository.findById(request.substitutoSugeridoId())
-                    .orElseThrow(() -> new UsuarioNaoEncontradoException(request.substitutoSugeridoId()));
-            validarSubstitutoElegivel(escala, sugerido);
-            solicitacao.setSubstitutoSugerido(sugerido);
-        }
+        solicitacao.setSubstitutoSugerido(sugerido);
 
         solicitacaoRepository.save(solicitacao);
         return SolicitacaoResponse.from(solicitacao);
@@ -95,7 +84,7 @@ public class SubstituicaoService {
     }
 
     @Transactional
-    public SolicitacaoResponse aprovar(Long id, AprovarSubstituicaoRequest request, Long liderId) {
+    public SolicitacaoResponse aprovar(Long id, Long liderId) {
         SolicitacaoSubstituicao solicitacao = solicitacaoRepository.findById(id)
                 .orElseThrow(() -> new SolicitacaoSubstituicaoNaoEncontradaException(id));
 
@@ -103,28 +92,12 @@ public class SubstituicaoService {
             throw new EstadoSolicitacaoInvalidoException();
         }
 
-        Long substitutoFinalId = request.substitutoFinalId() != null
-                ? request.substitutoFinalId()
-                : solicitacao.getSubstitutoSugerido() != null ? solicitacao.getSubstitutoSugerido().getId() : null;
-
-        if (substitutoFinalId == null) {
-            throw new SubstitutoObrigatorioException();
-        }
-
-        Usuario substituto = usuarioRepository.findById(substitutoFinalId)
-                .orElseThrow(() -> new UsuarioNaoEncontradoException(substitutoFinalId));
-
+        Usuario substituto = solicitacao.getSubstitutoSugerido();
         Escala escalaOriginal = solicitacao.getEscala();
-        validarSubstitutoElegivel(escalaOriginal, substituto);
 
-        escalaOriginal.setStatus(EscalaStatus.SUBSTITUIDA);
-        escalaRepository.save(escalaOriginal);
-
-        Escala novaEscala = new Escala();
-        novaEscala.setCulto(escalaOriginal.getCulto());
-        novaEscala.setUsuario(substituto);
-        novaEscala.setInstrumento(escalaOriginal.getInstrumento());
-        escalaRepository.save(novaEscala);
+        validarSubstitutoBasico(escalaOriginal, substituto);
+        validarSlotDisponivel(escalaOriginal);
+        trocarEscala(escalaOriginal, substituto);
 
         solicitacao.setStatus(SolicitacaoStatus.APROVADA);
         solicitacao.setSubstitutoFinal(substituto);
@@ -136,7 +109,7 @@ public class SubstituicaoService {
     }
 
     @Transactional
-    public SolicitacaoResponse rejeitar(Long id) {
+    public SolicitacaoResponse rejeitar(Long id, RejeitarSubstituicaoRequest request, Long liderId) {
         SolicitacaoSubstituicao solicitacao = solicitacaoRepository.findById(id)
                 .orElseThrow(() -> new SolicitacaoSubstituicaoNaoEncontradaException(id));
 
@@ -144,7 +117,23 @@ public class SubstituicaoService {
             throw new EstadoSolicitacaoInvalidoException();
         }
 
+        if (request == null || request.substitutoFinalId() == null) {
+            throw new SubstitutoObrigatorioException("Informe quem vai substituir");
+        }
+
+        Usuario substituto = usuarioRepository.findById(request.substitutoFinalId())
+                .orElseThrow(() -> new UsuarioNaoEncontradoException(request.substitutoFinalId()));
+
+        Escala escalaOriginal = solicitacao.getEscala();
+        validarSubstitutoBasico(escalaOriginal, substituto);
+        validarSlotDisponivel(escalaOriginal);
+        trocarEscala(escalaOriginal, substituto);
+
+        // Status permanece REJEITADA — a sugestão do músico foi recusada; substitutoFinal
+        // registra quem o líder escolheu no lugar (ver PROJETO.md / CONTEXTO.md sobre a troca).
         solicitacao.setStatus(SolicitacaoStatus.REJEITADA);
+        solicitacao.setSubstitutoFinal(substituto);
+        solicitacao.setAprovadaPor(usuarioRepository.getReferenceById(liderId));
         solicitacao.setResolvidaEm(LocalDateTime.now());
         solicitacaoRepository.save(solicitacao);
 
@@ -162,45 +151,38 @@ public class SubstituicaoService {
             throw new AcessoNaoAutorizadoException("Você não pode ver substitutos elegíveis para escala de outro músico");
         }
 
-        return musicoInstrumentoRepository.findByInstrumentoIdComUsuario(escala.getInstrumento().getId()).stream()
-                .map(MusicoInstrumento::getUsuario)
-                .filter(usuario -> motivoInelegibilidade(escala, usuario) == null)
+        // Escolha livre: qualquer usuário ativo serve, exceto o próprio dono da escala.
+        return usuarioRepository.buscarComPapeis(true).stream()
+                .filter(usuario -> !usuario.getId().equals(escala.getUsuario().getId()))
                 .map(usuario -> new SubstitutoElegivelResponse(usuario.getId(), usuario.getNome()))
                 .toList();
     }
 
-    private void validarSubstitutoElegivel(Escala escalaOriginal, Usuario candidato) {
-        String motivo = motivoInelegibilidade(escalaOriginal, candidato);
-        if (motivo != null) {
-            throw new SubstitutoNaoElegivelException(motivo);
+    private void trocarEscala(Escala escalaOriginal, Usuario substituto) {
+        escalaOriginal.setStatus(EscalaStatus.SUBSTITUIDA);
+        escalaRepository.save(escalaOriginal);
+
+        Escala novaEscala = new Escala();
+        novaEscala.setCulto(escalaOriginal.getCulto());
+        novaEscala.setUsuario(substituto);
+        novaEscala.setInstrumento(escalaOriginal.getInstrumento());
+        escalaRepository.save(novaEscala);
+    }
+
+    private void validarSubstitutoBasico(Escala escalaOriginal, Usuario candidato) {
+        if (!candidato.isAtivo()) {
+            throw new SubstitutoNaoElegivelException("Substituto inativo");
+        }
+        if (candidato.getId().equals(escalaOriginal.getUsuario().getId())) {
+            throw new SubstitutoNaoElegivelException("Substituto não pode ser o próprio solicitante");
         }
     }
 
-    private String motivoInelegibilidade(Escala escalaOriginal, Usuario candidato) {
-        if (!candidato.isAtivo()) {
-            return "Substituto inativo";
-        }
-        if (candidato.getId().equals(escalaOriginal.getUsuario().getId())) {
-            return "Substituto não pode ser o próprio solicitante";
-        }
-
-        MusicoInstrumentoId vinculoId = new MusicoInstrumentoId(candidato.getId(), escalaOriginal.getInstrumento().getId());
-        if (!musicoInstrumentoRepository.existsById(vinculoId)) {
-            return "Substituto não toca o instrumento desta escala";
-        }
-
-        LocalDateTime inicioJanela = escalaOriginal.getCulto().getDataHora().minusHours(JANELA_HORAS_ANTES);
-        LocalDateTime fimJanela = escalaOriginal.getCulto().getDataHora().plusHours(JANELA_HORAS_DEPOIS);
-        if (escalaRepository.existeEscalaAtivaNaJanela(candidato.getId(), inicioJanela, fimJanela)) {
-            return "Substituto já escalado em outro culto próximo a este horário";
-        }
-
+    private void validarSlotDisponivel(Escala escalaOriginal) {
         if (escalaOriginal.getInstrumento().getCategoria() != CategoriaInstrumento.VOCAL
                 && escalaRepository.existsByCultoIdAndInstrumentoIdAndIdNot(
                         escalaOriginal.getCulto().getId(), escalaOriginal.getInstrumento().getId(), escalaOriginal.getId())) {
-            return "Já há alguém escalado neste instrumento neste culto";
+            throw new SubstitutoNaoElegivelException("Já há alguém escalado neste instrumento neste culto");
         }
-
-        return null;
     }
 }

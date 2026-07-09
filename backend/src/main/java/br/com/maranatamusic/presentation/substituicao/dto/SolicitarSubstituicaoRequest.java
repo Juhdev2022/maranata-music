@@ -7,5 +7,5 @@ public record SolicitarSubstituicaoRequest(
         @NotNull Long escalaId,
         @NotNull MotivoSubstituicao motivo,
         String observacao,
-        Long substitutoSugeridoId
+        @NotNull Long substitutoSugeridoId
 ) {}

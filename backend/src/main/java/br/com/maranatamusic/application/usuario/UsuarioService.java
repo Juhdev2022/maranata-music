@@ -49,6 +49,7 @@ public class UsuarioService {
         usuario.getPapeis().add(Papel.MUSICO);
 
         usuarioRepository.save(usuario);
+        usuario.getPapeis().size(); // força carregamento da coleção LAZY antes da sessão fechar (serialização é fora da transação)
         return UsuarioResponse.from(usuario);
     }
 

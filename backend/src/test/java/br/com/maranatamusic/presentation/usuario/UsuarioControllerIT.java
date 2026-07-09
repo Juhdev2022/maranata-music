@@ -288,6 +288,7 @@ class UsuarioControllerIT {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email").value("demo123@teste.com"))
                 .andExpect(jsonPath("$.precisaDefinirSenha").value(true))
+                .andExpect(jsonPath("$.papeis.length()").value(1))
                 .andExpect(jsonPath("$.papeis", org.hamcrest.Matchers.hasItem("MUSICO")));
     }
 

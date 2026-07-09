@@ -213,6 +213,17 @@ Exemplos futuros:
 
 Manter esse log atualizado a cada intervenção manual. Se algo der errado no futuro, esse histórico ajuda a entender o que aconteceu.
 
+### Log real
+
+```
+2026-07-07 — Registro de demo-musico@teste.com e demo-lider@teste.com via /api/auth/registro — Julliana — M7.4.1, portfólio
+2026-07-07 — Promoção de demo-lider@teste.com a LIDER via INSERT em usuario_papel — Julliana — M7.4.1, portfólio
+2026-07-07 — Criação de 7 instrumentos via API (Baixo, Guitarra, Bateria, Teclado, Vocal Feminino, Vocal Masculino) + INSERT direto de "Cajón" via SQL (workaround desnecessário, ver correção abaixo) — Julliana — M7.4.2, dados demo
+2026-07-07 — Suspeita de bug: POST /api/instrumentos com nome acentuado parecia retornar 500. Contornado com INSERT SQL direto para "Cajón". Registrado como pendência em PROJETO.md §15 — Julliana — M7.4.2
+2026-07-08 — Investigação encerrada: NÃO havia bug na API. O 500 era falso positivo de `curl -d "<texto com acento>"` no Git Bash do Windows (corrompe Content-Length de argumentos multi-byte na linha de comando). Confirmado com `--data-binary @arquivo` (byte-exato) funcionando normalmente, e com teste de integração cobrindo Cajón/Percussão/Órgão. O INSERT SQL do Cajón foi desnecessário — a API já aceitava o nome corretamente. Pendência removida de PROJETO.md §15 — Julliana, Claude Code — M7.5
+2026-07-08 — Bug real (separado, confirmado): digitar acento direto no prompt interativo do psql no Windows corrompe o dado antes de gravar no banco (code page 850 do console). Corrigido com escape Unicode ASCII-safe (`UPDATE ... SET nome = E'Cajón'`) ou passando o SQL via arquivo/`-c` não-interativo — nunca digitar acento direto no prompt psql do Windows — Julliana — M7.4.2
+```
+
 ---
 
 ## 8. Contatos e responsabilidades

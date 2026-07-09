@@ -11,6 +11,7 @@ import br.com.maranatamusic.domain.exception.InstrumentoJaEscaladoException;
 import br.com.maranatamusic.domain.exception.InstrumentoNaoEncontradoException;
 import br.com.maranatamusic.domain.exception.MusicoInstrumentoNaoEncontradoException;
 import br.com.maranatamusic.domain.exception.MusicoJaEscaladoEmOutroCultoException;
+import br.com.maranatamusic.domain.exception.MusicoInstrumentoAmbiguoException;
 import br.com.maranatamusic.domain.exception.MusicoNaoTocaInstrumentoException;
 import br.com.maranatamusic.domain.exception.PrimeiroAcessoInvalidoException;
 import br.com.maranatamusic.domain.exception.PrimeiroAcessoNecessarioException;
@@ -165,6 +166,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErroResponse> handleVinculoComEscalaFutura(VinculoComEscalaFuturaException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(MusicoInstrumentoAmbiguoException.class)
+    public ResponseEntity<ErroResponse> handleMusicoInstrumentoAmbiguo(MusicoInstrumentoAmbiguoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ErroResponse.simples(ex.getMessage()));
     }
 
     @ExceptionHandler(MusicoInstrumentoNaoEncontradoException.class)

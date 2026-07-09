@@ -3,20 +3,24 @@ package br.com.maranatamusic.application.culto;
 import br.com.maranatamusic.domain.Culto;
 import br.com.maranatamusic.domain.Escala;
 import br.com.maranatamusic.domain.Instrumento;
-import br.com.maranatamusic.domain.MusicoInstrumentoId;
+import br.com.maranatamusic.domain.MusicoInstrumento;
 import br.com.maranatamusic.domain.Usuario;
+import br.com.maranatamusic.domain.enums.CategoriaInstrumento;
+import br.com.maranatamusic.domain.enums.EscalaStatus;
 import br.com.maranatamusic.domain.exception.CultoNaoEncontradoException;
+import br.com.maranatamusic.domain.exception.EscalaNaoEncontradaException;
+import br.com.maranatamusic.domain.exception.EstadoEscalaInvalidoException;
 import br.com.maranatamusic.domain.exception.InstrumentoJaEscaladoException;
-import br.com.maranatamusic.domain.exception.InstrumentoNaoEncontradoException;
+import br.com.maranatamusic.domain.exception.MusicoInstrumentoAmbiguoException;
 import br.com.maranatamusic.domain.exception.MusicoJaEscaladoEmOutroCultoException;
 import br.com.maranatamusic.domain.exception.MusicoNaoTocaInstrumentoException;
 import br.com.maranatamusic.domain.exception.UsuarioInativoException;
 import br.com.maranatamusic.domain.exception.UsuarioNaoEncontradoException;
 import br.com.maranatamusic.infrastructure.persistence.CultoRepository;
 import br.com.maranatamusic.infrastructure.persistence.EscalaRepository;
-import br.com.maranatamusic.infrastructure.persistence.InstrumentoRepository;
 import br.com.maranatamusic.infrastructure.persistence.MusicoInstrumentoRepository;
 import br.com.maranatamusic.infrastructure.persistence.UsuarioRepository;
+import br.com.maranatamusic.presentation.culto.dto.AtualizarObservacoesRequest;
 import br.com.maranatamusic.presentation.culto.dto.CriarCultoRequest;
 import br.com.maranatamusic.presentation.culto.dto.CultoDetalheResponse;
 import br.com.maranatamusic.presentation.culto.dto.CultoResponse;
@@ -29,6 +33,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CultoService {
@@ -39,16 +44,14 @@ public class CultoService {
     private final CultoRepository cultoRepository;
     private final UsuarioRepository usuarioRepository;
     private final EscalaRepository escalaRepository;
-    private final InstrumentoRepository instrumentoRepository;
     private final MusicoInstrumentoRepository musicoInstrumentoRepository;
 
     public CultoService(CultoRepository cultoRepository, UsuarioRepository usuarioRepository,
-                         EscalaRepository escalaRepository, InstrumentoRepository instrumentoRepository,
+                         EscalaRepository escalaRepository,
                          MusicoInstrumentoRepository musicoInstrumentoRepository) {
         this.cultoRepository = cultoRepository;
         this.usuarioRepository = usuarioRepository;
         this.escalaRepository = escalaRepository;
-        this.instrumentoRepository = instrumentoRepository;
         this.musicoInstrumentoRepository = musicoInstrumentoRepository;
     }
 
@@ -104,16 +107,11 @@ public class CultoService {
             throw new UsuarioInativoException(usuario.getId());
         }
 
-        Instrumento instrumento = instrumentoRepository.findById(request.instrumentoId())
-                .orElseThrow(() -> new InstrumentoNaoEncontradoException(request.instrumentoId()));
+        Instrumento instrumento = resolverInstrumento(usuario.getId());
 
-        MusicoInstrumentoId musicoInstrumentoId =
-                new MusicoInstrumentoId(usuario.getId(), instrumento.getId());
-        if (!musicoInstrumentoRepository.existsById(musicoInstrumentoId)) {
-            throw new MusicoNaoTocaInstrumentoException();
-        }
-
-        if (escalaRepository.existsByCultoIdAndInstrumentoId(cultoId, instrumento.getId())) {
+        // Vocais aceitam quantidade ilimitada por culto; demais categorias, só 1 pessoa por instrumento.
+        if (instrumento.getCategoria() != CategoriaInstrumento.VOCAL
+                && escalaRepository.existsByCultoIdAndInstrumentoId(cultoId, instrumento.getId())) {
             throw new InstrumentoJaEscaladoException();
         }
 
@@ -130,5 +128,43 @@ public class CultoService {
 
         escalaRepository.save(escala);
         return EscalaResumo.from(escala);
+    }
+
+    private Instrumento resolverInstrumento(Long usuarioId) {
+        List<MusicoInstrumento> vinculos = musicoInstrumentoRepository.findByUsuarioIdComDetalhes(usuarioId);
+        if (vinculos.isEmpty()) {
+            throw new MusicoNaoTocaInstrumentoException();
+        }
+
+        Optional<MusicoInstrumento> principal = musicoInstrumentoRepository.findPrincipalPorUsuario(usuarioId);
+        if (principal.isPresent()) {
+            return principal.get().getInstrumento();
+        }
+        if (vinculos.size() == 1) {
+            return vinculos.get(0).getInstrumento();
+        }
+        throw new MusicoInstrumentoAmbiguoException();
+    }
+
+    @Transactional
+    public CultoResponse atualizarObservacoes(Long cultoId, AtualizarObservacoesRequest request) {
+        Culto culto = cultoRepository.findById(cultoId)
+                .orElseThrow(() -> new CultoNaoEncontradoException(cultoId));
+        culto.setObservacoes(request.observacoes());
+        cultoRepository.save(culto);
+        return CultoResponse.from(culto);
+    }
+
+    @Transactional
+    public void removerEscala(Long cultoId, Long escalaId) {
+        Escala escala = escalaRepository.findById(escalaId)
+                .orElseThrow(() -> new EscalaNaoEncontradaException(escalaId));
+        if (!escala.getCulto().getId().equals(cultoId)) {
+            throw new EscalaNaoEncontradaException(escalaId);
+        }
+        if (escala.getStatus() == EscalaStatus.RECUSADA || escala.getStatus() == EscalaStatus.SUBSTITUIDA) {
+            throw new EstadoEscalaInvalidoException();
+        }
+        escalaRepository.delete(escala);
     }
 }

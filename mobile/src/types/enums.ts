@@ -17,6 +17,8 @@ export type MotivoSubstituicao = 'VIAGEM' | 'SAUDE' | 'TRABALHO' | 'OUTRO'
 
 export type SolicitacaoStatus = 'ABERTA' | 'APROVADA' | 'REJEITADA'
 
+export type RevisaoLider = 'APROVADA' | 'COM_OBSERVACAO'
+
 export const CULTO_TIPO_LABEL: Record<CultoTipo, string> = {
   DOMINGO_MANHA: 'Domingo de manhã',
   DOMINGO_NOITE: 'Domingo à noite',

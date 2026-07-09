@@ -5,6 +5,7 @@ import type { Papel } from '../types/enums'
 const STORAGE_KEY = 'maranata_auth'
 
 export interface AuthUser {
+  id: number
   nome: string
   email: string
   papeis: Papel[]
@@ -30,7 +31,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   hydrated: false,
 
   login: (response) => {
-    const user: AuthUser = { nome: response.nome, email: response.email, papeis: response.papeis }
+    const user: AuthUser = {
+      id: response.id,
+      nome: response.nome,
+      email: response.email,
+      papeis: response.papeis,
+    }
     const persisted: PersistedAuth = { token: response.token, user }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted))
     set({ user, token: response.token })

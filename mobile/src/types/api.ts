@@ -1,6 +1,15 @@
-import type { CategoriaInstrumento, CultoTipo, EscalaStatus, MotivoSubstituicao, Papel, SolicitacaoStatus } from './enums'
+import type {
+  CategoriaInstrumento,
+  CultoTipo,
+  EscalaStatus,
+  MotivoSubstituicao,
+  Papel,
+  RevisaoLider,
+  SolicitacaoStatus,
+} from './enums'
 
 export interface AuthResponse {
+  id: number
   token: string
   nome: string
   email: string
@@ -155,6 +164,32 @@ export interface CriarUsuarioRequest {
 
 export interface AlterarPapelRequest {
   papel: Papel
+}
+
+export interface MusicaCultoResponse {
+  id: number
+  musicaId: number
+  titulo: string
+  linkVideo: string | null
+  ordem: number
+  revisaoLider: RevisaoLider | null
+  observacaoLiderPrivada: string | null
+}
+
+export interface CriarMusicaCultoRequest {
+  titulo: string
+  linkVideo?: string
+  ordem?: number
+}
+
+export interface AtualizarMusicaCultoRequest {
+  linkVideo?: string
+  ordem?: number
+}
+
+export interface RevisaoLiderRequest {
+  revisaoLider: RevisaoLider
+  observacaoLiderPrivada?: string
 }
 
 export interface MusicoInstrumentoResponse {

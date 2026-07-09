@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
@@ -16,6 +17,7 @@ interface EscalaCardProps {
 export function EscalaCard({ escala, onConfirmar, onSubstituicaoSolicitada }: EscalaCardProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [modalAberto, setModalAberto] = useState(false)
+  const navigate = useNavigate()
 
   async function handleConfirmar() {
     setIsSubmitting(true)
@@ -44,6 +46,14 @@ export function EscalaCard({ escala, onConfirmar, onSubstituicaoSolicitada }: Es
         </div>
         <Badge tone={ESCALA_STATUS_TONE[escala.status]}>{ESCALA_STATUS_LABEL[escala.status]}</Badge>
       </div>
+
+      <button
+        type="button"
+        onClick={() => navigate(`/cultos/${escala.culto.id}`)}
+        className="self-start text-sm text-accent-gold underline"
+      >
+        Ver repertório
+      </button>
 
       {escala.solicitacaoAberta ? (
         <Badge tone="gold">Aguardando líder</Badge>

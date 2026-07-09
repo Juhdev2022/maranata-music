@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { AdicionarMusicaModal } from '../../components/domain/AdicionarMusicaModal'
+import { RepertorioList } from '../../components/domain/RepertorioList'
+import { RevisarMusicaModal } from '../../components/domain/RevisarMusicaModal'
 import { PageHeader } from '../../components/layout/PageHeader'
 import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
@@ -9,11 +12,15 @@ import { EmptyState } from '../../components/ui/EmptyState'
 import { Modal } from '../../components/ui/Modal'
 import { Select } from '../../components/ui/Select'
 import { Spinner } from '../../components/ui/Spinner'
+import { useIsLider } from '../../hooks/useIsLider'
 import { useToast } from '../../hooks/useToast'
 import { cultoService } from '../../services/cultoService'
+import { repertorioService } from '../../services/repertorioService'
 import { usuarioService } from '../../services/usuarioService'
-import type { CultoDetalheResponse, EscalaResumo, UsuarioResponse } from '../../types/api'
+import { useAuthStore } from '../../stores/authStore'
+import type { CultoDetalheResponse, EscalaResumo, MusicaCultoResponse, UsuarioResponse } from '../../types/api'
 import { CATEGORIA_INSTRUMENTO_LABEL, CULTO_TIPO_LABEL, ESCALA_STATUS_LABEL, ESCALA_STATUS_TONE } from '../../types/enums'
+import type { RevisaoLider } from '../../types/enums'
 import { formatCultoDataHora } from '../../utils/dateFormat'
 
 function XIcon() {
@@ -28,6 +35,8 @@ export function CultoDetalhePage() {
   const { id } = useParams()
   const cultoId = Number(id)
   const showToast = useToast()
+  const isLider = useIsLider()
+  const currentUserId = useAuthStore((state) => state.user?.id)
 
   const [culto, setCulto] = useState<CultoDetalheResponse | null>(null)
   const [carregando, setCarregando] = useState(true)
@@ -43,6 +52,14 @@ export function CultoDetalhePage() {
 
   const [paraRemover, setParaRemover] = useState<EscalaResumo | null>(null)
   const [removendo, setRemovendo] = useState(false)
+
+  const [repertorio, setRepertorio] = useState<MusicaCultoResponse[] | null>(null)
+  const [carregandoRepertorio, setCarregandoRepertorio] = useState(true)
+  const [modalMusicaAberto, setModalMusicaAberto] = useState(false)
+  const [musicaParaRevisar, setMusicaParaRevisar] = useState<MusicaCultoResponse | null>(null)
+
+  const ehMinistro = culto?.ministro != null && culto.ministro.id === currentUserId
+  const podeEditarRepertorio = ehMinistro || isLider
 
   useEffect(() => {
     let cancelado = false
@@ -61,6 +78,22 @@ export function CultoDetalhePage() {
       })
       .finally(() => {
         if (!cancelado) setCarregando(false)
+      })
+    return () => {
+      cancelado = true
+    }
+  }, [cultoId])
+
+  useEffect(() => {
+    let cancelado = false
+    setCarregandoRepertorio(true)
+    repertorioService
+      .listar(cultoId)
+      .then((data) => {
+        if (!cancelado) setRepertorio(data)
+      })
+      .finally(() => {
+        if (!cancelado) setCarregandoRepertorio(false)
       })
     return () => {
       cancelado = true
@@ -111,6 +144,33 @@ export function CultoDetalhePage() {
     }
   }
 
+  async function handleAdicionarMusica(titulo: string, linkVideo: string) {
+    const nova = await repertorioService.adicionar(cultoId, {
+      titulo,
+      linkVideo: linkVideo.trim() ? linkVideo : undefined,
+    })
+    setRepertorio((atual) => [...(atual ?? []), nova])
+    showToast('Música adicionada', 'success')
+    setModalMusicaAberto(false)
+  }
+
+  async function handleRemoverMusica(musicaCultoId: number) {
+    await repertorioService.remover(cultoId, musicaCultoId)
+    setRepertorio((atual) => atual?.filter((musica) => musica.id !== musicaCultoId) ?? atual)
+    showToast('Música removida', 'success')
+  }
+
+  async function handleRevisar(revisaoLider: RevisaoLider, observacaoLiderPrivada?: string) {
+    if (!musicaParaRevisar) return
+    const atualizada = await repertorioService.revisar(cultoId, musicaParaRevisar.id, {
+      revisaoLider,
+      observacaoLiderPrivada,
+    })
+    setRepertorio((atual) => atual?.map((musica) => (musica.id === atualizada.id ? atualizada : musica)) ?? atual)
+    showToast('Revisão salva', 'success')
+    setMusicaParaRevisar(null)
+  }
+
   if (carregando) {
     return (
       <div className="flex justify-center py-12">
@@ -135,27 +195,36 @@ export function CultoDetalhePage() {
             {culto.ministro && <p className="text-sm text-text-secondary">Ministro: {culto.ministro.nome}</p>}
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="observacoes" className="text-sm text-text-secondary">
-              Observações
-            </label>
-            <textarea
-              id="observacoes"
-              rows={3}
-              value={observacoesEdit}
-              onChange={(e) => setObservacoesEdit(e.target.value)}
-              placeholder="Ex.: figurino, horário de ensaio..."
-              className="rounded-btn border border-border bg-surface px-3.5 py-2.5 text-text-primary outline-none transition focus:ring-2 focus:ring-accent"
-            />
-            <Button
-              size="sm"
-              onClick={handleSalvarObservacoes}
-              disabled={salvandoObservacoes || observacoesEdit === (culto.observacoes ?? '')}
-              className="self-end"
-            >
-              {salvandoObservacoes ? 'Salvando...' : 'Salvar observações'}
-            </Button>
-          </div>
+          {isLider ? (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="observacoes" className="text-sm text-text-secondary">
+                Observações
+              </label>
+              <textarea
+                id="observacoes"
+                rows={3}
+                value={observacoesEdit}
+                onChange={(e) => setObservacoesEdit(e.target.value)}
+                placeholder="Ex.: figurino, horário de ensaio..."
+                className="rounded-btn border border-border bg-surface px-3.5 py-2.5 text-text-primary outline-none transition focus:ring-2 focus:ring-accent"
+              />
+              <Button
+                size="sm"
+                onClick={handleSalvarObservacoes}
+                disabled={salvandoObservacoes || observacoesEdit === (culto.observacoes ?? '')}
+                className="self-end"
+              >
+                {salvandoObservacoes ? 'Salvando...' : 'Salvar observações'}
+              </Button>
+            </div>
+          ) : (
+            culto.observacoes && (
+              <div>
+                <p className="text-sm text-text-secondary">Observações</p>
+                <p className="text-text-primary">{culto.observacoes}</p>
+              </div>
+            )
+          )}
         </Card>
 
         <div>
@@ -175,7 +244,7 @@ export function CultoDetalhePage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <Badge tone={ESCALA_STATUS_TONE[escala.status]}>{ESCALA_STATUS_LABEL[escala.status]}</Badge>
-                    {(escala.status === 'PENDENTE' || escala.status === 'CONFIRMADA') && (
+                    {isLider && (escala.status === 'PENDENTE' || escala.status === 'CONFIRMADA') && (
                       <button
                         type="button"
                         aria-label={`Remover ${escala.usuario.nome}`}
@@ -192,7 +261,31 @@ export function CultoDetalhePage() {
           )}
         </div>
 
-        <Button onClick={abrirModal}>Escalar músico</Button>
+        {isLider && <Button onClick={abrirModal}>Escalar músico</Button>}
+
+        <div>
+          <h2 className="mb-2 font-medium text-text-primary">Repertório</h2>
+
+          {carregandoRepertorio ? (
+            <div className="flex justify-center py-6">
+              <Spinner />
+            </div>
+          ) : (
+            <RepertorioList
+              musicas={repertorio ?? []}
+              podeEditar={podeEditarRepertorio}
+              isLider={isLider}
+              onRemover={handleRemoverMusica}
+              onRevisar={setMusicaParaRevisar}
+            />
+          )}
+
+          {podeEditarRepertorio && (
+            <Button onClick={() => setModalMusicaAberto(true)} className="mt-2">
+              Adicionar música
+            </Button>
+          )}
+        </div>
       </div>
 
       <Modal isOpen={modalAberto} onClose={() => setModalAberto(false)} title="Escalar músico">
@@ -219,6 +312,18 @@ export function CultoDetalhePage() {
         message={`Remover ${paraRemover?.usuario.nome} (${paraRemover?.instrumento.nome}) deste culto?`}
         confirmLabel="Remover"
         confirming={removendo}
+      />
+
+      <AdicionarMusicaModal
+        isOpen={modalMusicaAberto}
+        onClose={() => setModalMusicaAberto(false)}
+        onAdicionar={handleAdicionarMusica}
+      />
+
+      <RevisarMusicaModal
+        musica={musicaParaRevisar}
+        onClose={() => setMusicaParaRevisar(null)}
+        onRevisar={handleRevisar}
       />
     </div>
   )

@@ -96,14 +96,16 @@ export function CultosPage() {
           ))}
       </div>
 
-      <button
-        type="button"
-        aria-label="Criar culto"
-        onClick={() => navigate('/cultos/novo')}
-        className="fixed bottom-24 right-4 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-text-primary shadow-lg transition active:scale-95"
-      >
-        <PlusIcon />
-      </button>
+      <div className="fixed inset-x-0 bottom-24 z-50 mx-auto flex max-w-md justify-end pr-4">
+        <button
+          type="button"
+          aria-label="Criar culto"
+          onClick={() => navigate('/cultos/novo')}
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-text-primary shadow-lg transition active:scale-95"
+        >
+          <PlusIcon />
+        </button>
+      </div>
     </div>
   )
 }

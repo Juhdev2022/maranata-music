@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader } from '../../components/layout/PageHeader'
 import { UsuarioRow } from '../../components/domain/UsuarioRow'
+import { Button } from '../../components/ui/Button'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { Spinner } from '../../components/ui/Spinner'
 import { usuarioService } from '../../services/usuarioService'
@@ -53,6 +54,9 @@ export function UsuariosPage() {
           />
           Mostrar inativos
         </label>
+        <Button size="sm" onClick={() => navigate('/usuarios/novo')}>
+          Adicionar usuário
+        </Button>
       </div>
 
       <div className="flex flex-col gap-3 px-4 pb-6">
@@ -73,14 +77,16 @@ export function UsuariosPage() {
           usuarios?.map((usuario) => <UsuarioRow key={usuario.id} usuario={usuario} onChanged={carregar} />)}
       </div>
 
-      <button
-        type="button"
-        aria-label="Adicionar usuário"
-        onClick={() => navigate('/usuarios/novo')}
-        className="fixed bottom-24 right-4 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-text-primary shadow-lg transition active:scale-95"
-      >
-        <PlusIcon />
-      </button>
+      <div className="fixed inset-x-0 bottom-24 z-50 mx-auto flex max-w-md justify-end pr-4">
+        <button
+          type="button"
+          aria-label="Adicionar usuário"
+          onClick={() => navigate('/usuarios/novo')}
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-text-primary shadow-lg transition active:scale-95"
+        >
+          <PlusIcon />
+        </button>
+      </div>
     </div>
   )
 }

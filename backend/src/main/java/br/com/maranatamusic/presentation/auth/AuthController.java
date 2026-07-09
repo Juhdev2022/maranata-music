@@ -28,4 +28,9 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
+
+    @PostMapping("/definir-senha")
+    public ResponseEntity<AuthResponse> definirSenha(@Valid @RequestBody DefinirSenhaRequest request) {
+        return ResponseEntity.ok(authService.definirSenha(request));
+    }
 }

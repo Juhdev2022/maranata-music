@@ -12,6 +12,9 @@ import br.com.maranatamusic.domain.exception.InstrumentoNaoEncontradoException;
 import br.com.maranatamusic.domain.exception.MusicoInstrumentoNaoEncontradoException;
 import br.com.maranatamusic.domain.exception.MusicoJaEscaladoEmOutroCultoException;
 import br.com.maranatamusic.domain.exception.MusicoNaoTocaInstrumentoException;
+import br.com.maranatamusic.domain.exception.PrimeiroAcessoInvalidoException;
+import br.com.maranatamusic.domain.exception.PrimeiroAcessoNecessarioException;
+import br.com.maranatamusic.domain.exception.SenhasNaoConferemException;
 import br.com.maranatamusic.domain.exception.UltimoLiderException;
 import br.com.maranatamusic.domain.exception.UsuarioComEscalaFuturaException;
 import br.com.maranatamusic.domain.exception.UsuarioInativoException;
@@ -168,6 +171,21 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErroResponse> handleMusicoInstrumentoNaoEncontrado(MusicoInstrumentoNaoEncontradoException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(SenhasNaoConferemException.class)
+    public ResponseEntity<ErroResponse> handleSenhasNaoConferem(SenhasNaoConferemException ex) {
+        return ResponseEntity.badRequest().body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(PrimeiroAcessoInvalidoException.class)
+    public ResponseEntity<ErroResponse> handlePrimeiroAcessoInvalido(PrimeiroAcessoInvalidoException ex) {
+        return ResponseEntity.badRequest().body(ErroResponse.simples(ex.getMessage()));
+    }
+
+    @ExceptionHandler(PrimeiroAcessoNecessarioException.class)
+    public ResponseEntity<ErroResponse> handlePrimeiroAcessoNecessario(PrimeiroAcessoNecessarioException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ErroResponse.simples(ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

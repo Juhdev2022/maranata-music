@@ -3,11 +3,15 @@ package br.com.maranatamusic.application.auth;
 import br.com.maranatamusic.domain.enums.Papel;
 import br.com.maranatamusic.domain.Usuario;
 import br.com.maranatamusic.domain.exception.EmailJaCadastradoException;
+import br.com.maranatamusic.domain.exception.PrimeiroAcessoInvalidoException;
+import br.com.maranatamusic.domain.exception.PrimeiroAcessoNecessarioException;
+import br.com.maranatamusic.domain.exception.SenhasNaoConferemException;
 import br.com.maranatamusic.infrastructure.persistence.UsuarioRepository;
 import br.com.maranatamusic.infrastructure.security.CustomUserDetails;
 import br.com.maranatamusic.infrastructure.security.CustomUserDetailsService;
 import br.com.maranatamusic.infrastructure.security.JwtService;
 import br.com.maranatamusic.presentation.auth.AuthResponse;
+import br.com.maranatamusic.presentation.auth.DefinirSenhaRequest;
 import br.com.maranatamusic.presentation.auth.LoginRequest;
 import br.com.maranatamusic.presentation.auth.RegistroRequest;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -66,10 +70,37 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
+        usuarioRepository.findByEmail(request.email())
+                .filter(Usuario::isPrecisaDefinirSenha)
+                .ifPresent(usuario -> {
+                    throw new PrimeiroAcessoNecessarioException();
+                });
+
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.senha()));
 
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+        String token = jwtService.gerarToken(userDetails);
+        return toAuthResponse(token, userDetails);
+    }
+
+    @Transactional
+    public AuthResponse definirSenha(DefinirSenhaRequest request) {
+        if (!request.senha().equals(request.confirmarSenha())) {
+            throw new SenhasNaoConferemException();
+        }
+
+        Usuario usuario = usuarioRepository.findByEmail(request.email())
+                .filter(Usuario::isAtivo)
+                .filter(Usuario::isPrecisaDefinirSenha)
+                .orElseThrow(PrimeiroAcessoInvalidoException::new);
+
+        usuario.setSenhaHash(passwordEncoder.encode(request.senha()));
+        usuario.setPrecisaDefinirSenha(false);
+        usuarioRepository.save(usuario);
+
+        CustomUserDetails userDetails =
+                (CustomUserDetails) userDetailsService.loadUserByUsername(usuario.getEmail());
         String token = jwtService.gerarToken(userDetails);
         return toAuthResponse(token, userDetails);
     }

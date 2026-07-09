@@ -1,5 +1,7 @@
 package br.com.maranatamusic.presentation.auth;
 
+import br.com.maranatamusic.domain.Usuario;
+import br.com.maranatamusic.domain.enums.Papel;
 import br.com.maranatamusic.infrastructure.persistence.UsuarioRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -37,6 +40,9 @@ class AuthControllerIT {
 
     @Value("${jwt.secret}")
     private String jwtSecret;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void limparBase() {
@@ -166,7 +172,91 @@ class AuthControllerIT {
                 .andExpect(jsonPath("$.erro").value("Autenticação necessária"));
     }
 
+    // ---- cenário 11 ----
+
+    @Test
+    void definirSenha_usuarioPendente_deveRetornar200ETokenEPermitirLoginDepois() throws Exception {
+        criarUsuarioPendente("Demo Pendente", "demo-pendente@maranata.com");
+
+        mockMvc.perform(post("/api/auth/definir-senha")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(new DefinirSenhaRequest(
+                                "demo-pendente@maranata.com", "novaSenha123", "novaSenha123"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").isNotEmpty());
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(new LoginRequest("demo-pendente@maranata.com", "novaSenha123"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").isNotEmpty());
+    }
+
+    // ---- cenário 12 ----
+
+    @Test
+    void login_usuarioPendentePrimeiroAcesso_deveRetornar403() throws Exception {
+        criarUsuarioPendente("Demo Pendente Dois", "demo-pendente2@maranata.com");
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(new LoginRequest("demo-pendente2@maranata.com", "qualquerSenha"))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.erro").value("Defina sua senha em Primeiro acesso"));
+    }
+
+    // ---- cenário 13 ----
+
+    @Test
+    void definirSenha_senhasNaoConferem_deveRetornar400() throws Exception {
+        criarUsuarioPendente("Demo Pendente Tres", "demo-pendente3@maranata.com");
+
+        mockMvc.perform(post("/api/auth/definir-senha")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(new DefinirSenhaRequest(
+                                "demo-pendente3@maranata.com", "senhaUm123", "senhaDois123"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erro").value("As senhas não conferem"));
+    }
+
+    // ---- cenário 14 ----
+
+    @Test
+    void definirSenha_emailInexistente_deveRetornar400ComMensagemGenerica() throws Exception {
+        mockMvc.perform(post("/api/auth/definir-senha")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(new DefinirSenhaRequest(
+                                "naoexiste@maranata.com", "novaSenha123", "novaSenha123"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erro").value("Não foi possível completar o primeiro acesso"));
+    }
+
+    // ---- cenário 15 ----
+
+    @Test
+    void definirSenha_usuarioQueJaDefiniuSenha_deveRetornar400ComMesmaMensagemGenerica() throws Exception {
+        registrar("Maria", "maria-ja-ativa@maranata.com", "senha123");
+
+        mockMvc.perform(post("/api/auth/definir-senha")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(new DefinirSenhaRequest(
+                                "maria-ja-ativa@maranata.com", "novaSenha123", "novaSenha123"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erro").value("Não foi possível completar o primeiro acesso"));
+    }
+
     // ---- helpers ----
+
+    private void criarUsuarioPendente(String nome, String email) {
+        Usuario usuario = new Usuario();
+        usuario.setNome(nome);
+        usuario.setEmail(email);
+        usuario.setSenhaHash(passwordEncoder.encode(java.util.UUID.randomUUID().toString()));
+        usuario.setAtivo(true);
+        usuario.setPrecisaDefinirSenha(true);
+        usuario.getPapeis().add(Papel.MUSICO);
+        usuarioRepository.save(usuario);
+    }
 
     private void registrar(String nome, String email, String senha) throws Exception {
         mockMvc.perform(post("/api/auth/registro")

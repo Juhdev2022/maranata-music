@@ -19,6 +19,12 @@ export interface RegistroRequest {
   telefone?: string
 }
 
+export interface DefinirSenhaRequest {
+  email: string
+  senha: string
+  confirmarSenha: string
+}
+
 export interface ErroResponse {
   erro: string
   campos?: Record<string, string>

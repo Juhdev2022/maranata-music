@@ -5,6 +5,7 @@ import { ProtectedRoute } from './components/layout/ProtectedRoute'
 import { useAuth } from './hooks/useAuth'
 import { useIsLider } from './hooks/useIsLider'
 import { LoginPage } from './pages/auth/LoginPage'
+import { PrimeiroAcessoPage } from './pages/auth/PrimeiroAcessoPage'
 import { RegistroPage } from './pages/auth/RegistroPage'
 import { CriarCultoPage } from './pages/lider/CriarCultoPage'
 import { CriarUsuarioPage } from './pages/lider/CriarUsuarioPage'
@@ -27,6 +28,7 @@ export function AppRoutes() {
       <Route path="/" element={<RootRedirect />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/registro" element={<RegistroPage />} />
+      <Route path="/primeiro-acesso" element={<PrimeiroAcessoPage />} />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>

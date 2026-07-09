@@ -83,7 +83,10 @@ export interface CriarCultoRequest {
 
 export interface EscalarMusicoRequest {
   usuarioId: number
-  instrumentoId: number
+}
+
+export interface AtualizarObservacoesRequest {
+  observacoes: string | null
 }
 
 export interface EscalaMinhaResponse {

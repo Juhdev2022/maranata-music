@@ -4,17 +4,25 @@ import { PageHeader } from '../../components/layout/PageHeader'
 import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
+import { ConfirmModal } from '../../components/ui/ConfirmModal'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { Modal } from '../../components/ui/Modal'
 import { Select } from '../../components/ui/Select'
 import { Spinner } from '../../components/ui/Spinner'
 import { useToast } from '../../hooks/useToast'
 import { cultoService } from '../../services/cultoService'
-import { instrumentoService } from '../../services/instrumentoService'
 import { usuarioService } from '../../services/usuarioService'
-import type { CultoDetalheResponse, InstrumentoResponse, UsuarioResponse } from '../../types/api'
+import type { CultoDetalheResponse, EscalaResumo, UsuarioResponse } from '../../types/api'
 import { CATEGORIA_INSTRUMENTO_LABEL, CULTO_TIPO_LABEL, ESCALA_STATUS_LABEL, ESCALA_STATUS_TONE } from '../../types/enums'
 import { formatCultoDataHora } from '../../utils/dateFormat'
+
+function XIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  )
+}
 
 export function CultoDetalhePage() {
   const { id } = useParams()
@@ -25,12 +33,16 @@ export function CultoDetalhePage() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(false)
 
+  const [observacoesEdit, setObservacoesEdit] = useState('')
+  const [salvandoObservacoes, setSalvandoObservacoes] = useState(false)
+
   const [modalAberto, setModalAberto] = useState(false)
   const [usuarios, setUsuarios] = useState<UsuarioResponse[]>([])
-  const [instrumentos, setInstrumentos] = useState<InstrumentoResponse[]>([])
   const [usuarioId, setUsuarioId] = useState('')
-  const [instrumentoId, setInstrumentoId] = useState('')
   const [escalando, setEscalando] = useState(false)
+
+  const [paraRemover, setParaRemover] = useState<EscalaResumo | null>(null)
+  const [removendo, setRemovendo] = useState(false)
 
   useEffect(() => {
     let cancelado = false
@@ -39,7 +51,10 @@ export function CultoDetalhePage() {
     cultoService
       .detalhar(cultoId)
       .then((data) => {
-        if (!cancelado) setCulto(data)
+        if (!cancelado) {
+          setCulto(data)
+          setObservacoesEdit(data.observacoes ?? '')
+        }
       })
       .catch(() => {
         if (!cancelado) setErro(true)
@@ -52,27 +67,47 @@ export function CultoDetalhePage() {
     }
   }, [cultoId])
 
+  async function handleSalvarObservacoes() {
+    setSalvandoObservacoes(true)
+    try {
+      const atualizado = await cultoService.atualizarObservacoes(cultoId, { observacoes: observacoesEdit })
+      setCulto((atual) => (atual ? { ...atual, observacoes: atualizado.observacoes } : atual))
+      showToast('Observações salvas', 'success')
+    } finally {
+      setSalvandoObservacoes(false)
+    }
+  }
+
   function abrirModal() {
     usuarioService.listar({ ativos: true }).then(setUsuarios)
-    instrumentoService.listar().then(setInstrumentos)
     setUsuarioId('')
-    setInstrumentoId('')
     setModalAberto(true)
   }
 
   async function handleEscalar() {
     setEscalando(true)
     try {
-      await cultoService.escalar(cultoId, {
-        usuarioId: Number(usuarioId),
-        instrumentoId: Number(instrumentoId),
-      })
+      await cultoService.escalar(cultoId, { usuarioId: Number(usuarioId) })
       const atualizado = await cultoService.detalhar(cultoId)
       setCulto(atualizado)
       showToast('Músico escalado', 'success')
       setModalAberto(false)
     } finally {
       setEscalando(false)
+    }
+  }
+
+  async function handleRemover() {
+    if (!paraRemover) return
+    setRemovendo(true)
+    try {
+      await cultoService.removerEscala(cultoId, paraRemover.id)
+      const atualizado = await cultoService.detalhar(cultoId)
+      setCulto(atualizado)
+      showToast('Músico removido da escala', 'success')
+      setParaRemover(null)
+    } finally {
+      setRemovendo(false)
     }
   }
 
@@ -93,11 +128,34 @@ export function CultoDetalhePage() {
       <PageHeader title="Culto" onBack />
 
       <div className="flex flex-col gap-4 p-4">
-        <Card className="flex flex-col gap-1">
-          <p className="text-2xl text-text-primary">{formatCultoDataHora(culto.dataHora)}</p>
-          <p className="text-sm text-text-secondary">{CULTO_TIPO_LABEL[culto.tipo]}</p>
-          {culto.ministro && <p className="text-sm text-text-secondary">Ministro: {culto.ministro.nome}</p>}
-          {culto.observacoes && <p className="mt-2 text-sm text-text-primary">{culto.observacoes}</p>}
+        <Card className="flex flex-col gap-3">
+          <div>
+            <p className="text-2xl text-text-primary">{formatCultoDataHora(culto.dataHora)}</p>
+            <p className="text-sm text-text-secondary">{CULTO_TIPO_LABEL[culto.tipo]}</p>
+            {culto.ministro && <p className="text-sm text-text-secondary">Ministro: {culto.ministro.nome}</p>}
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="observacoes" className="text-sm text-text-secondary">
+              Observações
+            </label>
+            <textarea
+              id="observacoes"
+              rows={3}
+              value={observacoesEdit}
+              onChange={(e) => setObservacoesEdit(e.target.value)}
+              placeholder="Ex.: figurino, horário de ensaio..."
+              className="rounded-btn border border-border bg-surface px-3.5 py-2.5 text-text-primary outline-none transition focus:ring-2 focus:ring-accent"
+            />
+            <Button
+              size="sm"
+              onClick={handleSalvarObservacoes}
+              disabled={salvandoObservacoes || observacoesEdit === (culto.observacoes ?? '')}
+              className="self-end"
+            >
+              {salvandoObservacoes ? 'Salvando...' : 'Salvar observações'}
+            </Button>
+          </div>
         </Card>
 
         <div>
@@ -115,7 +173,19 @@ export function CultoDetalhePage() {
                       {escala.instrumento.nome} · {CATEGORIA_INSTRUMENTO_LABEL[escala.instrumento.categoria]}
                     </p>
                   </div>
-                  <Badge tone={ESCALA_STATUS_TONE[escala.status]}>{ESCALA_STATUS_LABEL[escala.status]}</Badge>
+                  <div className="flex items-center gap-3">
+                    <Badge tone={ESCALA_STATUS_TONE[escala.status]}>{ESCALA_STATUS_LABEL[escala.status]}</Badge>
+                    {(escala.status === 'PENDENTE' || escala.status === 'CONFIRMADA') && (
+                      <button
+                        type="button"
+                        aria-label={`Remover ${escala.usuario.nome}`}
+                        onClick={() => setParaRemover(escala)}
+                        className="text-text-secondary transition active:scale-95"
+                      >
+                        <XIcon />
+                      </button>
+                    )}
+                  </div>
                 </Card>
               ))}
             </div>
@@ -135,22 +205,21 @@ export function CultoDetalhePage() {
               </option>
             ))}
           </Select>
-          <Select label="Instrumento" value={instrumentoId} onChange={(e) => setInstrumentoId(e.target.value)}>
-            <option value="">Selecione</option>
-            {instrumentos.map((instrumento) => (
-              <option key={instrumento.id} value={instrumento.id}>
-                {instrumento.nome}
-              </option>
-            ))}
-          </Select>
-          <Button
-            onClick={handleEscalar}
-            disabled={!usuarioId || !instrumentoId || escalando}
-          >
+          <Button onClick={handleEscalar} disabled={!usuarioId || escalando}>
             {escalando ? 'Escalando...' : 'Escalar'}
           </Button>
         </div>
       </Modal>
+
+      <ConfirmModal
+        isOpen={paraRemover !== null}
+        onClose={() => setParaRemover(null)}
+        onConfirm={handleRemover}
+        title="Remover da escala"
+        message={`Remover ${paraRemover?.usuario.nome} (${paraRemover?.instrumento.nome}) deste culto?`}
+        confirmLabel="Remover"
+        confirming={removendo}
+      />
     </div>
   )
 }
